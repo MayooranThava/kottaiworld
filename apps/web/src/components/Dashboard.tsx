@@ -1,9 +1,11 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { formatBytes, formatWhen } from "@/lib/format";
+import { formatBytes, formatDuration, formatWhen } from "@/lib/format";
 import type { Snapshot } from "@/lib/types";
 import { HoldingsMap } from "./HoldingsMap";
+import { MaterialsShelf } from "./MaterialsShelf";
+import { UptimeBars } from "./UptimeBars";
 
 const serverName = process.env.NEXT_PUBLIC_SERVER_NAME ?? "KottaiServer";
 const worldName = process.env.NEXT_PUBLIC_WORLD_NAME ?? "KottaiWorld";
@@ -39,48 +41,91 @@ export function Dashboard() {
   const mode = snap?.mode ?? (loadError ? "error" : "empty");
   const bases = snap?.primary?.bases ?? [];
   const pieces = snap?.primary?.pieceCount ?? 0;
+  const blueprints = snap?.primary?.blueprintCount ?? 0;
   const statusLabel =
-    mode === "live" ? "World telemetry live" : mode === "error" ? "Degraded" : "Waiting";
+    mode === "live" ? "Telemetry live" : mode === "error" ? "Degraded" : "Waiting";
 
   return (
     <div className="page">
-      <header className="hero">
-        <p className="eyebrow">Ashenfall · dedicated</p>
-        <h1 className="brand">{serverName}</h1>
-        <p className="lede">
-          Watching <strong>{worldName}</strong> — holdings from a read-only save copy.
-          The game volume is never written by this dashboard.
-        </p>
-        <div className="cta">
+      <header className="topbar">
+        <div className="brand-block">
+          <p className="eyebrow">Ashenfall · dedicated observer</p>
+          <h1 className="brand">{serverName}</h1>
+        </div>
+        <div className="status-chip">
           <span className={`pulse ${mode}`} aria-hidden />
-          <span>{statusLabel}</span>
-          <a href="#holdings">View holdings</a>
+          <div>
+            <strong>{statusLabel}</strong>
+            <span>
+              {worldName}
+              {snap?.upStreakSec != null && mode === "live"
+                ? ` · up ${formatDuration(snap.upStreakSec)}`
+                : ""}
+            </span>
+          </div>
         </div>
       </header>
 
-      <section className="strip" aria-label="World vitals">
-        <div>
-          <span className="label">Building pieces</span>
-          <strong>{pieces.toLocaleString()}</strong>
-        </div>
-        <div>
-          <span className="label">Bases detected</span>
-          <strong>{bases.length}</strong>
-        </div>
-        <div>
-          <span className="label">Last collect</span>
-          <strong>{formatWhen(snap?.collectedAtIso)}</strong>
-        </div>
-        <div>
-          <span className="label">Save size</span>
-          <strong>
-            {snap?.primary ? formatBytes(snap.primary.fileSizeBytes) : "—"}
-          </strong>
+      <p className="lede">
+        Read-only holdings for <strong>{worldName}</strong>. The game volume is
+        never written by this dashboard.
+      </p>
+
+      <nav className="toc" aria-label="Sections">
+        <a href="#ops">Ops</a>
+        <a href="#holdings">Holdings</a>
+        <a href="#materials">Materials</a>
+        <a href="#worlds">World saves</a>
+      </nav>
+
+      <section id="ops" className="panel ops">
+        <UptimeBars snap={snap} />
+        <div className="vitals" aria-label="World vitals">
+          <div>
+            <span className="label">Building pieces</span>
+            <strong>{pieces.toLocaleString()}</strong>
+          </div>
+          <div>
+            <span className="label">Bases</span>
+            <strong>{bases.length}</strong>
+          </div>
+          <div>
+            <span className="label">Blueprints</span>
+            <strong>{blueprints.toLocaleString()}</strong>
+          </div>
+          <div>
+            <span className="label">Last collect</span>
+            <strong className="small">{formatWhen(snap?.collectedAtIso)}</strong>
+          </div>
+          <div>
+            <span className="label">Save size</span>
+            <strong>
+              {snap?.primary ? formatBytes(snap.primary.fileSizeBytes) : "—"}
+            </strong>
+          </div>
         </div>
       </section>
 
-      <section id="holdings" className="holdings">
+      {(snap?.error || loadError) && (
+        <section className="alert" role="alert">
+          <h2>Collector issue</h2>
+          <p>{snap?.error ?? loadError}</p>
+          {snap?.diagnostics?.length ? (
+            <ul>
+              {snap.diagnostics.map((line) => (
+                <li key={line}>{line}</li>
+              ))}
+            </ul>
+          ) : null}
+          <p className="hint">
+            Path expected: <code>{snap?.saveGamesPath || "/data/rsdw/.../SaveGames"}</code>
+          </p>
+        </section>
+      )}
+
+      <section id="holdings" className="panel holdings">
         <div className="section-head">
+          <p className="kicker">World map</p>
           <h2>Holdings</h2>
           <p>
             In-game Ashenfall map (<code>T_WorldMap_Landmass</code>) with bases from{" "}
@@ -103,25 +148,13 @@ export function Dashboard() {
         )}
       </section>
 
-      {(snap?.error || loadError) && (
-        <section className="alert" role="alert">
-          <h2>Collector issue</h2>
-          <p>{snap?.error ?? loadError}</p>
-          {snap?.diagnostics?.length ? (
-            <ul>
-              {snap.diagnostics.map((line) => (
-                <li key={line}>{line}</li>
-              ))}
-            </ul>
-          ) : null}
-          <p className="hint">
-            Path expected: <code>{snap?.saveGamesPath || "/data/rsdw/.../SaveGames"}</code>
-          </p>
-        </section>
-      )}
+      <section id="materials" className="panel">
+        <MaterialsShelf snap={snap} />
+      </section>
 
-      <section className="worlds">
+      <section id="worlds" className="panel worlds">
         <div className="section-head">
+          <p className="kicker">Filesystem</p>
           <h2>World saves</h2>
           <p>Discovered under the read-only mount (stream parse, no write-back).</p>
         </div>
@@ -149,115 +182,163 @@ export function Dashboard() {
 
       <style jsx>{`
         .page {
-          max-width: 1120px;
+          max-width: var(--page-max);
           margin: 0 auto;
-          padding: 0 1.25rem 3rem;
-        }
-        .hero {
-          min-height: 100svh;
+          padding: 1.75rem 1.25rem 3rem;
           display: flex;
           flex-direction: column;
-          justify-content: flex-end;
-          padding: 4.5rem 0 3rem;
-          animation: rise 0.9s ease both;
+          gap: 1.35rem;
+          animation: rise 0.7s ease both;
         }
-        .eyebrow {
-          letter-spacing: 0.22em;
+        .topbar {
+          display: flex;
+          justify-content: space-between;
+          align-items: end;
+          gap: 1.25rem;
+          flex-wrap: wrap;
+          padding-bottom: 0.35rem;
+          border-bottom: 1px solid var(--line);
+        }
+        .eyebrow,
+        .kicker {
+          margin: 0 0 0.35rem;
+          letter-spacing: 0.18em;
           text-transform: uppercase;
-          font-size: 0.72rem;
+          font-size: 0.68rem;
           color: var(--fog);
-          margin: 0 0 0.75rem;
+          font-weight: 500;
         }
         .brand {
           font-family: var(--font-display);
-          font-weight: 700;
-          font-size: clamp(3.2rem, 10vw, 6.4rem);
-          line-height: 0.95;
+          font-weight: 650;
+          font-size: clamp(2.4rem, 5.5vw, 3.6rem);
+          line-height: 1.02;
           margin: 0;
           letter-spacing: -0.03em;
-          background: linear-gradient(120deg, var(--parchment), var(--ember-soft));
-          -webkit-background-clip: text;
-          background-clip: text;
-          color: transparent;
+          color: var(--parchment);
+        }
+        .status-chip {
+          display: flex;
+          align-items: center;
+          gap: 0.75rem;
+          padding: 0.65rem 0.9rem;
+          background: var(--panel);
+          border: 1px solid var(--line);
+          min-width: 12rem;
+        }
+        .status-chip strong {
+          display: block;
+          font-size: 0.95rem;
+          font-weight: 600;
+        }
+        .status-chip span:last-child {
+          display: block;
+          font-size: 0.78rem;
+          color: var(--fog);
+        }
+        .pulse {
+          width: 0.65rem;
+          height: 0.65rem;
+          border-radius: 50%;
+          background: var(--fog);
+          flex-shrink: 0;
+          animation: breath 2.4s ease-in-out infinite;
+        }
+        .pulse.live {
+          background: var(--signal-up);
+        }
+        .pulse.error {
+          background: var(--ember);
         }
         .lede {
-          max-width: 34rem;
-          margin: 1.25rem 0 0;
-          font-size: 1.05rem;
-          line-height: 1.55;
+          margin: 0;
+          max-width: 40rem;
           color: var(--fog);
+          font-size: 1rem;
+          line-height: 1.55;
         }
         .lede strong {
           color: var(--parchment);
           font-weight: 600;
         }
-        .cta {
-          margin-top: 2rem;
+        .toc {
           display: flex;
-          align-items: center;
-          gap: 0.85rem;
           flex-wrap: wrap;
+          gap: 0.35rem 1.1rem;
+          padding: 0.15rem 0 0.35rem;
+          border-bottom: 1px solid var(--line);
         }
-        .pulse {
-          width: 0.7rem;
-          height: 0.7rem;
-          border-radius: 50%;
-          background: var(--fog);
-          animation: breath 2.4s ease-in-out infinite;
-        }
-        .pulse.live {
-          background: #7dba6a;
-        }
-        .pulse.error {
-          background: var(--ember);
-        }
-        .cta a {
-          margin-left: 0.5rem;
+        .toc a {
           text-decoration: none;
-          border-bottom: 1px solid rgba(224, 138, 79, 0.5);
-          padding-bottom: 0.1rem;
+          color: var(--fog);
+          font-size: 0.82rem;
+          letter-spacing: 0.08em;
+          text-transform: uppercase;
+          font-weight: 500;
         }
-        .strip {
+        .toc a:hover {
+          color: var(--ember-soft);
+        }
+        .panel {
+          padding: 1.35rem 0;
+          border-bottom: 1px solid var(--line);
+        }
+        .ops {
+          display: flex;
+          flex-direction: column;
+          gap: 1.35rem;
+        }
+        .vitals {
           display: grid;
-          grid-template-columns: repeat(4, minmax(0, 1fr));
-          gap: 1.25rem;
-          padding: 1.5rem 0 2.5rem;
-          border-top: 1px solid rgba(232, 224, 210, 0.12);
-          animation: rise 1s ease both;
-          animation-delay: 0.15s;
+          grid-template-columns: repeat(5, minmax(0, 1fr));
+          gap: 0.85rem;
         }
-        .strip .label {
+        .vitals > div {
+          padding: 0.85rem 0.9rem;
+          background: var(--panel);
+          border: 1px solid var(--line);
+        }
+        .label {
           display: block;
           font-size: 0.72rem;
           letter-spacing: 0.14em;
           text-transform: uppercase;
-          color: var(--fog);
+          color: rgba(232, 224, 210, 0.72);
           margin-bottom: 0.35rem;
+          font-weight: 500;
         }
-        .strip strong {
-          font-family: var(--font-display);
-          font-size: 1.55rem;
+        .vitals strong {
+          font-size: 1.35rem;
+          font-weight: 650;
+          font-variant-numeric: tabular-nums;
+          letter-spacing: -0.02em;
+        }
+        .vitals strong.small {
+          font-size: 0.92rem;
           font-weight: 600;
+          letter-spacing: 0;
+          line-height: 1.35;
         }
         .section-head h2 {
           font-family: var(--font-display);
-          font-size: 1.85rem;
+          font-size: 1.55rem;
+          font-weight: 600;
+          letter-spacing: -0.02em;
           margin: 0 0 0.35rem;
         }
         .section-head p {
           margin: 0 0 1rem;
           color: var(--fog);
-          max-width: 36rem;
+          max-width: 38rem;
         }
-        .holdings,
-        .worlds {
-          padding: 2rem 0;
-          animation: rise 1s ease both;
+        .section-head code {
+          color: var(--parchment);
+          font-size: 0.85em;
         }
         .base-list,
         .worlds ul {
           list-style: none;
-          margin: 0;
+          margin: 1rem 0 0;
           padding: 0;
         }
         .base-list li,
@@ -265,7 +346,7 @@ export function Dashboard() {
           display: grid;
           grid-template-columns: 1fr auto auto;
           gap: 1rem;
-          padding: 0.75rem 0;
+          padding: 0.7rem 0;
           border-bottom: 1px solid rgba(232, 224, 210, 0.08);
           font-variant-numeric: tabular-nums;
         }
@@ -278,16 +359,15 @@ export function Dashboard() {
           color: var(--fog);
         }
         .alert {
-          margin: 0 0 1.5rem;
-          padding: 1.25rem 1.35rem;
+          margin: 0;
+          padding: 1.15rem 1.25rem;
           border: 1px solid rgba(196, 92, 42, 0.45);
           background: rgba(196, 92, 42, 0.1);
-          animation: rise 0.6s ease both;
         }
         .alert h2 {
           font-family: var(--font-display);
           margin: 0 0 0.5rem;
-          font-size: 1.2rem;
+          font-size: 1.15rem;
         }
         .alert p {
           margin: 0.35rem 0;
@@ -314,19 +394,23 @@ export function Dashboard() {
           justify-content: space-between;
           gap: 1rem;
           flex-wrap: wrap;
-          padding-top: 2rem;
-          border-top: 1px solid rgba(232, 224, 210, 0.1);
+          padding-top: 0.5rem;
           color: var(--fog);
-          font-size: 0.85rem;
+          font-size: 0.82rem;
         }
-        @media (max-width: 800px) {
-          .strip {
+        @media (max-width: 900px) {
+          .vitals {
             grid-template-columns: 1fr 1fr;
           }
+        }
+        @media (max-width: 640px) {
           .base-list li,
           .worlds li {
             grid-template-columns: 1fr;
-            gap: 0.2rem;
+            gap: 0.15rem;
+          }
+          .vitals {
+            grid-template-columns: 1fr;
           }
         }
       `}</style>

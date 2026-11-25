@@ -8,6 +8,12 @@ export type BaseCluster = {
   cellKeys: string[];
 };
 
+export type BlueprintStat = {
+  classGuid: string;
+  count: number;
+  share: number;
+};
+
 export type WorldSaveSummary = {
   fileName: string;
   worldName: string | null;
@@ -16,6 +22,8 @@ export type WorldSaveSummary = {
   fileSizeBytes: number;
   pieceCount: number;
   bases: BaseCluster[];
+  blueprintCount?: number;
+  blueprints?: BlueprintStat[];
   parseWarnings: string[];
 };
 
@@ -23,6 +31,21 @@ export type WorldListItem = {
   fileName: string;
   sizeBytes: number;
   mtimeIso: string;
+};
+
+export type UptimeStatus = "up" | "down" | "degraded" | "pending";
+
+export type UptimeTick = {
+  atIso: string;
+  status: UptimeStatus;
+};
+
+export type UptimeHistory = {
+  processStartedAtIso: string;
+  firstLiveAtIso: string | null;
+  ticks: UptimeTick[];
+  windowHours: number;
+  intervalSec: number;
 };
 
 export type Snapshot = {
@@ -36,4 +59,6 @@ export type Snapshot = {
   error: string | null;
   mode: "live" | "empty" | "error";
   diagnostics?: string[];
+  uptime?: UptimeHistory;
+  upStreakSec?: number | null;
 };

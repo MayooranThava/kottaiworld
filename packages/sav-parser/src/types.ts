@@ -18,6 +18,12 @@ export type BaseCluster = {
   cellKeys: string[];
 };
 
+export type BlueprintStat = {
+  classGuid: string;
+  count: number;
+  share: number;
+};
+
 export type WorldSaveSummary = {
   fileName: string;
   worldName: string | null;
@@ -26,6 +32,10 @@ export type WorldSaveSummary = {
   fileSizeBytes: number;
   pieceCount: number;
   bases: BaseCluster[];
+  /** Distinct building piece class GUIDs */
+  blueprintCount: number;
+  /** Top blueprints by piece count */
+  blueprints: BlueprintStat[];
   piecesSample: BuildingPiece[];
   parseWarnings: string[];
 };

@@ -1,6 +1,7 @@
 import { basename } from "node:path";
 import { readFile } from "node:fs/promises";
 import { unwrapSaveBuffer } from "./binary.js";
+import { summarizeBlueprints } from "./blueprints.js";
 import { clusterBases } from "./cluster.js";
 import { findChunkInFile, probeSaveFile, readFileRange, readHead } from "./fileScan.js";
 import { parseSaveInfo } from "./info.js";
@@ -9,11 +10,13 @@ import type { ClusterOptions, WorldSaveSummary } from "./types.js";
 
 export type {
   BaseCluster,
+  BlueprintStat,
   BuildingPiece,
   ClusterOptions,
   Vec3,
   WorldSaveSummary,
 } from "./types.js";
+export { summarizeBlueprints } from "./blueprints.js";
 export { clusterBases } from "./cluster.js";
 export { parsePcesPieces } from "./pieces.js";
 export { parseSaveInfo } from "./info.js";
@@ -29,6 +32,7 @@ export function analyzeWorldSave(
   const info = parseSaveInfo(data);
   const { pieces, warnings } = parsePcesPieces(data);
   const bases = clusterBases(pieces, options);
+  const blueprints = summarizeBlueprints(pieces);
   const worldFromFile = fileName.replace(/\.sav$/i, "");
 
   return {
@@ -39,6 +43,8 @@ export function analyzeWorldSave(
     fileSizeBytes: buffer.length,
     pieceCount: pieces.length,
     bases,
+    blueprintCount: blueprints.unique,
+    blueprints: blueprints.top,
     piecesSample: pieces.slice(0, 40),
     parseWarnings: warnings,
   };
@@ -93,6 +99,7 @@ export async function analyzeWorldSaveFromFile(
   }
 
   const bases = clusterBases(pieces, options);
+  const blueprints = summarizeBlueprints(pieces);
 
   return {
     fileName,
@@ -102,6 +109,8 @@ export async function analyzeWorldSaveFromFile(
     fileSizeBytes: probe.size,
     pieceCount: pieces.length,
     bases,
+    blueprintCount: blueprints.unique,
+    blueprints: blueprints.top,
     piecesSample: pieces.slice(0, 40),
     parseWarnings: warnings,
   };

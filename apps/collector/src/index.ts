@@ -2,6 +2,7 @@ import { createServer } from "node:http";
 import { Hono } from "hono";
 import { collectOnce, getSnapshot } from "./collect.js";
 import { config } from "./config.js";
+import { loadUptimeHistory } from "./uptime.js";
 
 const app = new Hono();
 
@@ -13,6 +14,8 @@ app.get("/health", (c) => {
     collectedAtIso: snap.collectedAtIso,
     pieceCount: snap.primary?.pieceCount ?? 0,
     baseCount: snap.primary?.bases.length ?? 0,
+    upStreakSec: snap.upStreakSec,
+    uptimeTicks: snap.uptime.ticks.length,
   });
 });
 
@@ -34,6 +37,7 @@ async function main() {
     }),
   );
 
+  await loadUptimeHistory();
   await collectOnce();
   setInterval(() => {
     void collectOnce().then((s) => {

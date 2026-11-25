@@ -1,17 +1,18 @@
 import type { Metadata } from "next";
 import type { CSSProperties } from "react";
-import { Figtree, Syne } from "next/font/google";
+import { IBM_Plex_Sans, Literata } from "next/font/google";
 import "./globals.css";
 
-const syne = Syne({
+const literata = Literata({
   subsets: ["latin"],
-  variable: "--font-syne",
+  variable: "--font-literata",
   display: "swap",
 });
 
-const figtree = Figtree({
+const plex = IBM_Plex_Sans({
   subsets: ["latin"],
-  variable: "--font-figtree",
+  weight: ["400", "500", "600", "700"],
+  variable: "--font-plex",
   display: "swap",
 });
 
@@ -25,12 +26,12 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en" className={`${syne.variable} ${figtree.variable}`}>
+    <html lang="en" className={`${literata.variable} ${plex.variable}`}>
       <body
         style={
           {
-            ["--font-display"]: "var(--font-syne), sans-serif",
-            ["--font-body"]: "var(--font-figtree), sans-serif",
+            ["--font-display"]: "var(--font-literata), Georgia, serif",
+            ["--font-body"]: "var(--font-plex), 'Segoe UI', sans-serif",
           } as CSSProperties
         }
       >

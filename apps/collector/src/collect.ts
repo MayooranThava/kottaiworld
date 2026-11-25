@@ -6,6 +6,12 @@ import {
 } from "@kottaiworld/sav-parser";
 import { config } from "./config.js";
 import { discoverSaves, type Discovery } from "./discover.js";
+import {
+  currentUpStreakSec,
+  getUptimeHistory,
+  recordUptimeTick,
+  type UptimeHistory,
+} from "./uptime.js";
 
 export type WorldListItem = {
   fileName: string;
@@ -24,6 +30,8 @@ export type Snapshot = {
   error: string | null;
   mode: "live" | "empty" | "error";
   diagnostics: string[];
+  uptime: UptimeHistory;
+  upStreakSec: number | null;
 };
 
 let latest: Snapshot = {
@@ -37,7 +45,19 @@ let latest: Snapshot = {
   error: "Collector has not run yet",
   mode: "empty",
   diagnostics: [],
+  uptime: getUptimeHistory(),
+  upStreakSec: null,
 };
+
+function withUptime(
+  snap: Omit<Snapshot, "uptime" | "upStreakSec">,
+): Snapshot {
+  return {
+    ...snap,
+    uptime: getUptimeHistory(),
+    upStreakSec: currentUpStreakSec(),
+  };
+}
 
 let lastParsedKey: string | null = null;
 let lastPrimary: WorldSaveSummary | null = null;
@@ -73,7 +93,7 @@ export async function collectOnce(): Promise<Snapshot> {
     worlds = worldsFromDiscovery(discovery);
 
     if (!discovery.dataRootExists) {
-      latest = {
+      latest = withUptime({
         collectedAtIso,
         serverName: config.serverName,
         configuredWorld: config.primaryWorld,
@@ -84,12 +104,14 @@ export async function collectOnce(): Promise<Snapshot> {
         error: discovery.notes.join(" · "),
         mode: "error",
         diagnostics: discovery.notes,
-      };
+      });
+      await recordUptimeTick(latest.mode);
+      latest = withUptime({ ...latest });
       return latest;
     }
 
     if (worlds.length === 0) {
-      latest = {
+      latest = withUptime({
         collectedAtIso,
         serverName: config.serverName,
         configuredWorld: config.primaryWorld,
@@ -100,7 +122,9 @@ export async function collectOnce(): Promise<Snapshot> {
         error: discovery.notes.join(" · "),
         mode: "empty",
         diagnostics: discovery.notes,
-      };
+      });
+      await recordUptimeTick(latest.mode);
+      latest = withUptime({ ...latest });
       return latest;
     }
 
@@ -124,7 +148,7 @@ export async function collectOnce(): Promise<Snapshot> {
       }
     } catch (parseErr) {
       const message = safeErrorMessage(parseErr);
-      latest = {
+      latest = withUptime({
         collectedAtIso,
         serverName: config.serverName,
         configuredWorld: config.primaryWorld,
@@ -135,11 +159,13 @@ export async function collectOnce(): Promise<Snapshot> {
         error: `Save parse failed: ${message}`,
         mode: "error",
         diagnostics: [...discovery.notes, `parse: ${message}`],
-      };
+      });
+      await recordUptimeTick(latest.mode);
+      latest = withUptime({ ...latest });
       return latest;
     }
 
-    latest = {
+    latest = withUptime({
       collectedAtIso,
       serverName: config.serverName,
       configuredWorld: config.primaryWorld,
@@ -150,7 +176,9 @@ export async function collectOnce(): Promise<Snapshot> {
       error: null,
       mode: "live",
       diagnostics: discovery.notes,
-    };
+    });
+    await recordUptimeTick(latest.mode);
+    latest = withUptime({ ...latest });
 
     await writeFile(
       join(config.workDir, "snapshot.json"),
@@ -161,7 +189,7 @@ export async function collectOnce(): Promise<Snapshot> {
     return latest;
   } catch (err) {
     const message = safeErrorMessage(err);
-    latest = {
+    latest = withUptime({
       collectedAtIso,
       serverName: config.serverName,
       configuredWorld: config.primaryWorld,
@@ -172,7 +200,9 @@ export async function collectOnce(): Promise<Snapshot> {
       error: message,
       mode: "error",
       diagnostics: [...(discovery?.notes ?? latest.diagnostics), message],
-    };
+    });
+    await recordUptimeTick(latest.mode);
+    latest = withUptime({ ...latest });
     return latest;
   }
 }

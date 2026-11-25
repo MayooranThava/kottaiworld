@@ -22,6 +22,14 @@ export async function GET() {
           worlds: [],
           primary: null,
           diagnostics: [],
+          uptime: {
+            processStartedAtIso: new Date().toISOString(),
+            firstLiveAtIso: null,
+            ticks: [],
+            windowHours: 6,
+            intervalSec: 120,
+          },
+          upStreakSec: 0,
         },
         { status: 502 },
       );
@@ -42,6 +50,14 @@ export async function GET() {
           worlds: [],
           primary: null,
           diagnostics: [],
+          uptime: {
+            processStartedAtIso: new Date().toISOString(),
+            firstLiveAtIso: null,
+            ticks: [],
+            windowHours: 6,
+            intervalSec: 120,
+          },
+          upStreakSec: 0,
         },
       { status: 503 },
     );
