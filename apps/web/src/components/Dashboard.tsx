@@ -82,7 +82,10 @@ export function Dashboard() {
       <section id="holdings" className="holdings">
         <div className="section-head">
           <h2>Holdings</h2>
-          <p>Clusters of placed pieces from {worldName}.sav — map pins scale with piece count.</p>
+          <p>
+            Ashenfall map with bases from {worldName}.sav — pin size scales with piece count.
+            Projection is approximate until Phase B calibration.
+          </p>
         </div>
         <HoldingsMap bases={bases} />
         {bases.length > 0 && (
