@@ -21,6 +21,7 @@ export async function GET() {
           saveGamesPath: "",
           worlds: [],
           primary: null,
+          diagnostics: [],
         },
         { status: 502 },
       );
@@ -30,17 +31,18 @@ export async function GET() {
   } catch (err) {
     const message = err instanceof Error ? err.message : String(err);
     return NextResponse.json(
-      {
-        mode: "error",
-        error: `Cannot reach collector at ${base}: ${message}`,
-        collectedAtIso: new Date().toISOString(),
-        serverName: process.env.NEXT_PUBLIC_SERVER_NAME ?? "KottaiServer",
-        configuredWorld: process.env.NEXT_PUBLIC_WORLD_NAME ?? "KottaiWorld",
-        dataRootMounted: false,
-        saveGamesPath: "",
-        worlds: [],
-        primary: null,
-      },
+        {
+          mode: "error",
+          error: `Cannot reach collector at ${base}: ${message}`,
+          collectedAtIso: new Date().toISOString(),
+          serverName: process.env.NEXT_PUBLIC_SERVER_NAME ?? "KottaiServer",
+          configuredWorld: process.env.NEXT_PUBLIC_WORLD_NAME ?? "KottaiWorld",
+          dataRootMounted: false,
+          saveGamesPath: "",
+          worlds: [],
+          primary: null,
+          diagnostics: [],
+        },
       { status: 503 },
     );
   }

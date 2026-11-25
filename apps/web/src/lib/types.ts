@@ -35,4 +35,5 @@ export type Snapshot = {
   primary: WorldSaveSummary | null;
   error: string | null;
   mode: "live" | "empty" | "error";
+  diagnostics?: string[];
 };

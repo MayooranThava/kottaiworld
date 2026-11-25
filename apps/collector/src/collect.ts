@@ -1,7 +1,11 @@
-import { copyFile, mkdir, readdir, stat, writeFile } from "node:fs/promises";
+import { mkdir, writeFile } from "node:fs/promises";
 import { join } from "node:path";
-import { analyzeWorldSave, type WorldSaveSummary } from "@kottaiworld/sav-parser";
-import { config, saveGamesDir } from "./config.js";
+import {
+  analyzeWorldSaveFromFile,
+  type WorldSaveSummary,
+} from "@kottaiworld/sav-parser";
+import { config } from "./config.js";
+import { discoverSaves, type Discovery } from "./discover.js";
 
 export type WorldListItem = {
   fileName: string;
@@ -19,6 +23,7 @@ export type Snapshot = {
   primary: WorldSaveSummary | null;
   error: string | null;
   mode: "live" | "empty" | "error";
+  diagnostics: string[];
 };
 
 let latest: Snapshot = {
@@ -26,42 +31,52 @@ let latest: Snapshot = {
   serverName: config.serverName,
   configuredWorld: config.primaryWorld,
   dataRootMounted: false,
-  saveGamesPath: saveGamesDir(),
+  saveGamesPath: "",
   worlds: [],
   primary: null,
   error: "Collector has not run yet",
   mode: "empty",
+  diagnostics: [],
 };
+
+let lastParsedKey: string | null = null;
+let lastPrimary: WorldSaveSummary | null = null;
 
 export function getSnapshot(): Snapshot {
   return latest;
 }
 
-async function listWorlds(dir: string): Promise<WorldListItem[]> {
-  const entries = await readdir(dir);
-  const worlds: WorldListItem[] = [];
-  for (const name of entries) {
-    if (!name.toLowerCase().endsWith(".sav")) continue;
-    if (name.includes(".backup") || name.includes(".verbackup")) continue;
-    const full = join(dir, name);
-    const s = await stat(full);
-    worlds.push({
-      fileName: name,
-      sizeBytes: s.size,
-      mtimeIso: s.mtime.toISOString(),
-    });
-  }
-  worlds.sort((a, b) => a.fileName.localeCompare(b.fileName));
-  return worlds;
+function worldsFromDiscovery(d: Discovery): WorldListItem[] {
+  return d.savFiles.map((f) => ({
+    fileName: f.fileName,
+    sizeBytes: f.sizeBytes,
+    mtimeIso: f.mtimeIso,
+  }));
 }
 
 export async function collectOnce(): Promise<Snapshot> {
   const collectedAtIso = new Date().toISOString();
-  const dir = saveGamesDir();
 
   try {
     await mkdir(config.workDir, { recursive: true });
-    const worlds = await listWorlds(dir);
+    const discovery = await discoverSaves();
+    const worlds = worldsFromDiscovery(discovery);
+
+    if (!discovery.dataRootExists) {
+      latest = {
+        collectedAtIso,
+        serverName: config.serverName,
+        configuredWorld: config.primaryWorld,
+        dataRootMounted: false,
+        saveGamesPath: discovery.dataRoot,
+        worlds: [],
+        primary: null,
+        error: discovery.notes.join(" · "),
+        mode: "error",
+        diagnostics: discovery.notes,
+      };
+      return latest;
+    }
 
     if (worlds.length === 0) {
       latest = {
@@ -69,42 +84,46 @@ export async function collectOnce(): Promise<Snapshot> {
         serverName: config.serverName,
         configuredWorld: config.primaryWorld,
         dataRootMounted: true,
-        saveGamesPath: dir,
+        saveGamesPath: discovery.saveGamesPath ?? discovery.dataRoot,
         worlds: [],
         primary: null,
-        error: `No .sav files in ${dir}`,
+        error: discovery.notes.join(" · "),
         mode: "empty",
+        diagnostics: discovery.notes,
       };
       return latest;
     }
 
     const primaryName = `${config.primaryWorld}.sav`;
     const primaryMeta =
-      worlds.find((w) => w.fileName === primaryName) ?? worlds[0]!;
+      discovery.savFiles.find((w) => w.fileName === primaryName) ??
+      discovery.savFiles[0]!;
 
-    const src = join(dir, primaryMeta.fileName);
-    const dest = join(config.workDir, primaryMeta.fileName);
-
-    // Copy-then-parse: never open the live file for long parsing, never write back.
-    await copyFile(src, dest);
-    const { readFile } = await import("node:fs/promises");
-    const buf = await readFile(dest);
-
-    const primary = analyzeWorldSave(buf, primaryMeta.fileName, {
-      cellCm: config.baseCellCm,
-      minPieces: config.baseMinPieces,
-    });
+    const parseKey = `${primaryMeta.path}:${primaryMeta.mtimeIso}:${primaryMeta.sizeBytes}`;
+    let primary: WorldSaveSummary;
+    if (lastParsedKey === parseKey && lastPrimary) {
+      primary = lastPrimary;
+    } else {
+      // Read-only open of the mounted file; stream-scan Pces (no full RAM load).
+      primary = await analyzeWorldSaveFromFile(primaryMeta.path, {
+        cellCm: config.baseCellCm,
+        minPieces: config.baseMinPieces,
+      });
+      lastParsedKey = parseKey;
+      lastPrimary = primary;
+    }
 
     latest = {
       collectedAtIso,
       serverName: config.serverName,
       configuredWorld: config.primaryWorld,
       dataRootMounted: true,
-      saveGamesPath: dir,
+      saveGamesPath: discovery.saveGamesPath ?? "",
       worlds,
       primary,
       error: null,
       mode: "live",
+      diagnostics: discovery.notes,
     };
 
     await writeFile(
@@ -120,12 +139,13 @@ export async function collectOnce(): Promise<Snapshot> {
       collectedAtIso,
       serverName: config.serverName,
       configuredWorld: config.primaryWorld,
-      dataRootMounted: false,
-      saveGamesPath: dir,
-      worlds: [],
+      dataRootMounted: latest.dataRootMounted,
+      saveGamesPath: latest.saveGamesPath,
+      worlds: latest.worlds,
       primary: null,
       error: message,
       mode: "error",
+      diagnostics: [...latest.diagnostics, message],
     };
     return latest;
   }

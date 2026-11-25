@@ -15,12 +15,14 @@ services:
       COLLECTOR_PORT: "4100"
       RSDW_DATA_ROOT: /data/rsdw
       SAVE_GAMES_SUBPATH: RSDragonwilds/Saved/SaveGames
+      COLLECTOR_WORK_DIR: /app/work
       PRIMARY_WORLD: ${PRIMARY_WORLD:-KottaiWorld}
       COLLECT_INTERVAL_SEC: ${COLLECT_INTERVAL_SEC:-120}
       BASE_MIN_PIECES: ${BASE_MIN_PIECES:-25}
       BASE_CELL_CM: ${BASE_CELL_CM:-5000}
       KOTTAI_SERVER_NAME: ${KOTTAI_SERVER_NAME:-KottaiServer}
       KOTTAI_WORLD_NAME: ${KOTTAI_WORLD_NAME:-KottaiWorld}
+      NODE_OPTIONS: "--max-old-space-size=4096"
     volumes:
       # Exact volume name from: docker inspect dragonwilds --format "{{range .Mounts}}{{.Name}}{{end}}"
       - dragonwilds_data:/data/rsdw:ro

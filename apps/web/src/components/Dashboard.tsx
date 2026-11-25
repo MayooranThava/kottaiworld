@@ -100,10 +100,27 @@ export function Dashboard() {
         )}
       </section>
 
+      {(snap?.error || loadError) && (
+        <section className="alert" role="alert">
+          <h2>Collector issue</h2>
+          <p>{snap?.error ?? loadError}</p>
+          {snap?.diagnostics?.length ? (
+            <ul>
+              {snap.diagnostics.map((line) => (
+                <li key={line}>{line}</li>
+              ))}
+            </ul>
+          ) : null}
+          <p className="hint">
+            Path expected: <code>{snap?.saveGamesPath || "/data/rsdw/.../SaveGames"}</code>
+          </p>
+        </section>
+      )}
+
       <section className="worlds">
         <div className="section-head">
           <h2>World saves</h2>
-          <p>Discovered under the read-only mount (copy-on-read).</p>
+          <p>Discovered under the read-only mount (stream parse, no write-back).</p>
         </div>
         <ul>
           {(snap?.worlds ?? []).map((w) => (
@@ -117,9 +134,6 @@ export function Dashboard() {
             <li className="muted">No saves visible yet — check the volume mount.</li>
           )}
         </ul>
-        {(snap?.error || loadError) && (
-          <p className="err">{snap?.error ?? loadError}</p>
-        )}
         {snap?.primary?.parseWarnings?.length ? (
           <p className="warn">{snap.primary.parseWarnings.join(" · ")}</p>
         ) : null}
@@ -260,8 +274,33 @@ export function Dashboard() {
         .muted {
           color: var(--fog);
         }
-        .err {
+        .alert {
+          margin: 0 0 1.5rem;
+          padding: 1.25rem 1.35rem;
+          border: 1px solid rgba(196, 92, 42, 0.45);
+          background: rgba(196, 92, 42, 0.1);
+          animation: rise 0.6s ease both;
+        }
+        .alert h2 {
+          font-family: var(--font-display);
+          margin: 0 0 0.5rem;
+          font-size: 1.2rem;
+        }
+        .alert p {
+          margin: 0.35rem 0;
           color: #ffb4a2;
+        }
+        .alert ul {
+          margin: 0.75rem 0 0;
+          padding-left: 1.1rem;
+          color: var(--fog);
+        }
+        .alert .hint {
+          color: var(--fog);
+          font-size: 0.9rem;
+        }
+        .alert code {
+          color: var(--parchment);
         }
         .warn {
           color: #e0c07a;

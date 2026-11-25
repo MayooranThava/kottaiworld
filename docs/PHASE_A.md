@@ -47,6 +47,17 @@ Open:
 - Holdings map pins
 - List of `.sav` files (`KottaiWorld.sav`, `FriendsWorld.sav`, …)
 
+## If status is Degraded / no saves
+
+```powershell
+curl http://localhost:4100/api/snapshot
+docker exec kottai-collector ls -la /data/rsdw
+docker exec kottai-collector find /data/rsdw -iname "*.sav"
+docker inspect kottai-collector --format "{{json .Mounts}}"
+```
+
+Confirm the collector mount name is `dragonwilds_dragonwilds-data` (same as the game).
+
 ## Tuning
 
 In `.env` / compose env:
