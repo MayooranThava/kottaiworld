@@ -31,15 +31,19 @@ export type Chunk = {
 
 export function readChunkHeader(data: Buffer, offset: number): Chunk {
   if (offset + 8 > data.length) throw new Error("chunk header truncated");
-  const tag = data.subarray(offset, offset + 4).toString("ascii");
+  const rawTag = data.subarray(offset, offset + 4);
+  const tag = rawTag.toString("latin1");
+  const safeTag = /^[\x20-\x7E]{4}$/.test(tag) ? tag : rawTag.toString("hex");
   const length = data.readUInt32LE(offset + 4);
   const bodyStart = offset + 8;
   const bodyEnd = bodyStart + length;
-  if (bodyEnd > data.length) throw new Error(`chunk ${tag} overflows file`);
+  if (bodyEnd > data.length) {
+    throw new Error(`chunk ${safeTag} overflows buffer (len=${length})`);
+  }
   return { tag, bodyStart, bodyEnd };
 }
 
-/** Walk immediate child chunks inside [start, end). */
+/** Walk immediate child chunks inside [start, end). Soft-stops on garbage headers. */
 export function* walkChunks(
   data: Buffer,
   start: number,
@@ -47,8 +51,17 @@ export function* walkChunks(
 ): Generator<Chunk> {
   let offset = start;
   while (offset + 8 <= end) {
-    const chunk = readChunkHeader(data, offset);
-    if (chunk.bodyEnd > end) break;
+    let chunk: Chunk;
+    try {
+      chunk = readChunkHeader(data, offset);
+    } catch {
+      break;
+    }
+    // Reject non-printable tags / nonsense lengths (common when preamble isn't chunked)
+    if (!/^[A-Za-z0-9]{3,4}$/.test(chunk.tag.trim()) && !/^[A-Za-z]{4}$/.test(chunk.tag)) {
+      break;
+    }
+    if (chunk.bodyEnd > end || chunk.bodyEnd <= chunk.bodyStart) break;
     yield chunk;
     offset = chunk.bodyEnd;
   }

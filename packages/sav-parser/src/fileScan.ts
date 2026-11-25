@@ -42,11 +42,23 @@ export async function findChunkInFile(
         const absHeader = windowFileStart + at;
         const bodyStart = absHeader + 8;
         const bodyEnd = bodyStart + length;
-        if (bodyEnd <= size && length < size) {
-          // Prefer hits that look like real chunks (not random ASCII in binary)
-          if (length > 0) {
-            return { tag, bodyStart, bodyEnd };
+        // Reject huge false positives (would OOM) and empty bodies
+        const maxBody =
+          tag === "Pces" ? 800 * 1024 * 1024 : Math.min(size - 1, 64 * 1024 * 1024);
+        if (length > 0 && length <= maxBody && bodyEnd <= size) {
+          // For Pces, require a plausible piece record near the start (len=23 GUID)
+          if (tag === "Pces") {
+            const peekLen = Math.min(64, length);
+            if (at + 8 + peekLen <= window.length) {
+              const peek = window.subarray(at + 8, at + 8 + peekLen);
+              const guidMarker = Buffer.from([0x17, 0x00, 0x00, 0x00]);
+              if (peek.indexOf(guidMarker) < 0) {
+                searchFrom = at + 1;
+                continue;
+              }
+            }
           }
+          return { tag, bodyStart, bodyEnd };
         }
         searchFrom = at + 1;
       }

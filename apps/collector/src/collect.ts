@@ -54,13 +54,23 @@ function worldsFromDiscovery(d: Discovery): WorldListItem[] {
   }));
 }
 
+function safeErrorMessage(err: unknown): string {
+  if (err instanceof Error) {
+    // Strip accidental binary from messages
+    return err.message.replace(/[^\x20-\x7E]/g, "?").slice(0, 500);
+  }
+  return String(err).replace(/[^\x20-\x7E]/g, "?").slice(0, 500);
+}
+
 export async function collectOnce(): Promise<Snapshot> {
   const collectedAtIso = new Date().toISOString();
+  let discovery: Discovery | null = null;
+  let worlds: WorldListItem[] = [];
 
   try {
     await mkdir(config.workDir, { recursive: true });
-    const discovery = await discoverSaves();
-    const worlds = worldsFromDiscovery(discovery);
+    discovery = await discoverSaves();
+    worlds = worldsFromDiscovery(discovery);
 
     if (!discovery.dataRootExists) {
       latest = {
@@ -101,16 +111,32 @@ export async function collectOnce(): Promise<Snapshot> {
 
     const parseKey = `${primaryMeta.path}:${primaryMeta.mtimeIso}:${primaryMeta.sizeBytes}`;
     let primary: WorldSaveSummary;
-    if (lastParsedKey === parseKey && lastPrimary) {
-      primary = lastPrimary;
-    } else {
-      // Read-only open of the mounted file; stream-scan Pces (no full RAM load).
-      primary = await analyzeWorldSaveFromFile(primaryMeta.path, {
-        cellCm: config.baseCellCm,
-        minPieces: config.baseMinPieces,
-      });
-      lastParsedKey = parseKey;
-      lastPrimary = primary;
+    try {
+      if (lastParsedKey === parseKey && lastPrimary) {
+        primary = lastPrimary;
+      } else {
+        primary = await analyzeWorldSaveFromFile(primaryMeta.path, {
+          cellCm: config.baseCellCm,
+          minPieces: config.baseMinPieces,
+        });
+        lastParsedKey = parseKey;
+        lastPrimary = primary;
+      }
+    } catch (parseErr) {
+      const message = safeErrorMessage(parseErr);
+      latest = {
+        collectedAtIso,
+        serverName: config.serverName,
+        configuredWorld: config.primaryWorld,
+        dataRootMounted: true,
+        saveGamesPath: discovery.saveGamesPath ?? "",
+        worlds,
+        primary: null,
+        error: `Save parse failed: ${message}`,
+        mode: "error",
+        diagnostics: [...discovery.notes, `parse: ${message}`],
+      };
+      return latest;
     }
 
     latest = {
@@ -134,18 +160,18 @@ export async function collectOnce(): Promise<Snapshot> {
 
     return latest;
   } catch (err) {
-    const message = err instanceof Error ? err.message : String(err);
+    const message = safeErrorMessage(err);
     latest = {
       collectedAtIso,
       serverName: config.serverName,
       configuredWorld: config.primaryWorld,
-      dataRootMounted: latest.dataRootMounted,
-      saveGamesPath: latest.saveGamesPath,
-      worlds: latest.worlds,
+      dataRootMounted: discovery?.dataRootExists ?? latest.dataRootMounted,
+      saveGamesPath: discovery?.saveGamesPath ?? latest.saveGamesPath,
+      worlds: worlds.length ? worlds : latest.worlds,
       primary: null,
       error: message,
       mode: "error",
-      diagnostics: [...latest.diagnostics, message],
+      diagnostics: [...(discovery?.notes ?? latest.diagnostics), message],
     };
     return latest;
   }
