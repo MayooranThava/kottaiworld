@@ -1,0 +1,59 @@
+# Phase A — local dashboard stack.
+# Does NOT modify the dragonwilds game container.
+# Mounts the existing volume READ-ONLY and only copies .sav files out to parse.
+
+name: kottaiworld
+
+services:
+  collector:
+    build:
+      context: .
+      dockerfile: apps/collector/Dockerfile
+    container_name: kottai-collector
+    restart: unless-stopped
+    environment:
+      COLLECTOR_PORT: "4100"
+      RSDW_DATA_ROOT: /data/rsdw
+      SAVE_GAMES_SUBPATH: RSDragonwilds/Saved/SaveGames
+      PRIMARY_WORLD: ${PRIMARY_WORLD:-KottaiWorld}
+      COLLECT_INTERVAL_SEC: ${COLLECT_INTERVAL_SEC:-120}
+      BASE_MIN_PIECES: ${BASE_MIN_PIECES:-25}
+      BASE_CELL_CM: ${BASE_CELL_CM:-5000}
+      KOTTAI_SERVER_NAME: ${KOTTAI_SERVER_NAME:-KottaiServer}
+      KOTTAI_WORLD_NAME: ${KOTTAI_WORLD_NAME:-KottaiWorld}
+    volumes:
+      # Exact volume name from: docker inspect dragonwilds --format "{{range .Mounts}}{{.Name}}{{end}}"
+      - dragonwilds_data:/data/rsdw:ro
+      - collector_work:/app/work
+    ports:
+      - "4100:4100"
+    networks:
+      - kottai
+
+  web:
+    build:
+      context: .
+      dockerfile: apps/web/Dockerfile
+    container_name: kottai-web
+    restart: unless-stopped
+    environment:
+      COLLECTOR_URL: http://collector:4100
+      NEXT_PUBLIC_SERVER_NAME: ${KOTTAI_SERVER_NAME:-KottaiServer}
+      NEXT_PUBLIC_WORLD_NAME: ${KOTTAI_WORLD_NAME:-KottaiWorld}
+    ports:
+      - "3000:3000"
+    depends_on:
+      - collector
+    networks:
+      - kottai
+
+volumes:
+  dragonwilds_data:
+    external: true
+    # Must match the volume your game container uses
+    name: dragonwilds_dragonwilds-data
+  collector_work:
+
+networks:
+  kottai:
+    driver: bridge
