@@ -76,3 +76,14 @@ code {
     transform: translateY(0);
   }
 }
+
+.vital-label {
+  display: block;
+  font-size: 0.75rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: rgba(232, 224, 210, 0.78);
+  margin-bottom: 0.4rem;
+  font-weight: 500;
+  line-height: 1.3;
+}

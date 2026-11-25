@@ -82,23 +82,23 @@ export function Dashboard() {
         <UptimeBars snap={snap} />
         <div className="vitals" aria-label="World vitals">
           <div>
-            <span className="label">Building pieces</span>
+            <span className="vital-label">Building pieces</span>
             <strong>{pieces.toLocaleString()}</strong>
           </div>
           <div>
-            <span className="label">Bases</span>
+            <span className="vital-label">Bases</span>
             <strong>{bases.length}</strong>
           </div>
           <div>
-            <span className="label">Blueprints</span>
+            <span className="vital-label">Blueprints</span>
             <strong>{blueprints.toLocaleString()}</strong>
           </div>
           <div>
-            <span className="label">Last collect</span>
+            <span className="vital-label">Last collect</span>
             <strong className="small">{formatWhen(snap?.collectedAtIso)}</strong>
           </div>
           <div>
-            <span className="label">Save size</span>
+            <span className="vital-label">Save size</span>
             <strong>
               {snap?.primary ? formatBytes(snap.primary.fileSizeBytes) : "—"}
             </strong>
@@ -297,15 +297,6 @@ export function Dashboard() {
           padding: 0.85rem 0.9rem;
           background: var(--panel);
           border: 1px solid var(--line);
-        }
-        .label {
-          display: block;
-          font-size: 0.72rem;
-          letter-spacing: 0.14em;
-          text-transform: uppercase;
-          color: rgba(232, 224, 210, 0.72);
-          margin-bottom: 0.35rem;
-          font-weight: 500;
         }
         .vitals strong {
           font-size: 1.35rem;
