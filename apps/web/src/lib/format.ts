@@ -9,10 +9,14 @@ export function formatWhen(iso: string | null | undefined): string {
   if (!iso) return "—";
   const d = new Date(iso);
   if (Number.isNaN(d.getTime())) return iso;
+  // dateStyle/timeStyle cannot be combined with timeZoneName in many engines
   return new Intl.DateTimeFormat("en-CA", {
     timeZone: "America/Toronto",
-    dateStyle: "medium",
-    timeStyle: "short",
+    year: "numeric",
+    month: "short",
+    day: "numeric",
+    hour: "numeric",
+    minute: "2-digit",
     timeZoneName: "short",
   }).format(d);
 }

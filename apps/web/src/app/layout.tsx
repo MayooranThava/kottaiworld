@@ -18,6 +18,9 @@ const figtree = Figtree({
 export const metadata: Metadata = {
   title: "KottaiServer · KottaiWorld",
   description: "Local Ashenfall holdings dashboard for the KottaiWorld dedicated server.",
+  icons: {
+    icon: "/favicon.svg",
+  },
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
