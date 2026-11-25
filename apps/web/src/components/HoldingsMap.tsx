@@ -7,13 +7,6 @@ type Props = {
   bases: BaseCluster[];
 };
 
-const REGIONS = [
-  { name: "Brynmoor", left: "22%", top: "68%" },
-  { name: "Ghornfell", left: "48%", top: "42%" },
-  { name: "Fellhollow", left: "58%", top: "18%" },
-  { name: "Umbral Sands", left: "78%", top: "72%" },
-] as const;
-
 export function HoldingsMap({ bases }: Props) {
   if (bases.length === 0) {
     return (
@@ -28,15 +21,17 @@ export function HoldingsMap({ bases }: Props) {
   const maxPieces = Math.max(...bases.map((b) => b.pieceCount));
 
   return (
-    <div className="map" role="img" aria-label="Ashenfall holdings map with base markers">
-      <div className="terrain" aria-hidden />
+    <div className="map" role="img" aria-label="Ashenfall world map with base holdings">
+      <picture>
+        <source srcSet="/ashenfall-map.webp" type="image/webp" />
+        <img
+          className="terrain"
+          src="/ashenfall-map.jpg"
+          alt="Ashenfall world map from RuneScape: Dragonwilds (T_WorldMap_Landmass)"
+          draggable={false}
+        />
+      </picture>
       <div className="veil" aria-hidden />
-
-      {REGIONS.map((r) => (
-        <span key={r.name} className="region" style={{ left: r.left, top: r.top }}>
-          {r.name}
-        </span>
-      ))}
 
       {bases.map((b, i) => {
         const pos = projectToMap(b.centroid.x, b.centroid.y);
@@ -44,7 +39,7 @@ export function HoldingsMap({ bases }: Props) {
         return (
           <div
             key={b.id}
-            className="pin"
+            className={`pin ${pos.onMap ? "" : "off"}`}
             style={{
               left: `${pos.leftPct}%`,
               top: `${pos.topPct}%`,
@@ -62,7 +57,7 @@ export function HoldingsMap({ bases }: Props) {
 
       <div className="legend">
         <span>Ashenfall</span>
-        <span>Holdings · Unreal cm</span>
+        <span>Map © Jagex · T_WorldMap_Landmass</span>
       </div>
 
       <style jsx>{styles}</style>
@@ -73,9 +68,10 @@ export function HoldingsMap({ bases }: Props) {
 const styles = `
   .map {
     position: relative;
-    min-height: min(58vh, 560px);
+    min-height: min(70vh, 720px);
     overflow: hidden;
     border-top: 1px solid rgba(232, 224, 210, 0.12);
+    background: #080a0c;
   }
   .map.empty {
     display: grid;
@@ -91,32 +87,20 @@ const styles = `
   .terrain {
     position: absolute;
     inset: 0;
-    background:
-      url("/ashenfall-map.jpg") center / cover no-repeat,
-      linear-gradient(160deg, #1a221c, #121416 70%);
-    transform: scale(1.02);
-    animation: mapBreath 18s ease-in-out infinite alternate;
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    object-position: center;
+    transform: scale(1.01);
+    animation: mapBreath 22s ease-in-out infinite alternate;
+    user-select: none;
   }
   .veil {
     position: absolute;
     inset: 0;
     background:
-      radial-gradient(ellipse at 50% 40%, transparent 35%, rgba(10, 12, 14, 0.55) 100%),
-      linear-gradient(180deg, rgba(12, 14, 16, 0.15), rgba(12, 14, 16, 0.45));
+      radial-gradient(ellipse at 50% 45%, transparent 40%, rgba(8, 10, 12, 0.35) 100%);
     pointer-events: none;
-  }
-  .region {
-    position: absolute;
-    z-index: 2;
-    translate: -50% -50%;
-    font-family: var(--font-display);
-    font-size: 0.72rem;
-    letter-spacing: 0.18em;
-    text-transform: uppercase;
-    color: rgba(232, 224, 210, 0.55);
-    text-shadow: 0 1px 8px rgba(0, 0, 0, 0.8);
-    pointer-events: none;
-    animation: rise 1s ease both;
   }
   .pin {
     position: absolute;
@@ -125,6 +109,9 @@ const styles = `
     display: grid;
     place-items: center;
     animation: rise 0.7s ease both;
+  }
+  .pin.off {
+    opacity: 0.45;
   }
   .ring {
     position: absolute;
@@ -154,11 +141,11 @@ const styles = `
     display: flex;
     flex-direction: column;
     gap: 0.15rem;
-    font-size: 0.72rem;
-    letter-spacing: 0.14em;
+    font-size: 0.68rem;
+    letter-spacing: 0.12em;
     text-transform: uppercase;
     color: rgba(232, 224, 210, 0.7);
-    text-shadow: 0 1px 6px rgba(0, 0, 0, 0.7);
+    text-shadow: 0 1px 6px rgba(0, 0, 0, 0.85);
   }
   .legend span:first-child {
     font-family: var(--font-display);
@@ -167,7 +154,7 @@ const styles = `
     color: var(--parchment);
   }
   @keyframes mapBreath {
-    from { transform: scale(1.02); }
-    to { transform: scale(1.05); }
+    from { transform: scale(1.01); }
+    to { transform: scale(1.03); }
   }
 `;

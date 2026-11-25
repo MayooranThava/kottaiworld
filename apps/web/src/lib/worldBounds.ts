@@ -1,28 +1,34 @@
 /**
- * Approximate Ashenfall playable bounds in Unreal cm.
- * Tuned to span early Brynmoor → mid Ghornfell from observed dedicated-server coords.
- * Phase B can replace this with calibrated landmarks from live player positions.
+ * Ashenfall world-map calibration from the game's T_WorldMap_Landmass
+ * (same constants published in dragonwildsdatabase.com/map/world.json).
+ *
+ * world → map UV:
+ *   u = (x - ox) / size
+ *   v = (y - oy) / size
  */
-export const ASHENFALL_BOUNDS = {
-  minX: 0,
-  maxX: 220_000,
-  minY: 40_000,
-  maxY: 260_000,
+export const ASHENFALL_MAP = {
+  /** Unreal cm span covered by the square world map texture */
+  size: 485_000,
+  ox: -42_500,
+  oy: -147_500,
+  /** Source texture name inside the game */
+  texture: "T_WorldMap_Landmass",
+  /** Native texture pixels */
+  px: 6144,
 } as const;
 
 export function projectToMap(
   x: number,
   y: number,
-  bounds = ASHENFALL_BOUNDS,
-  pad = 0.04,
-): { leftPct: number; topPct: number } {
-  const spanX = Math.max(bounds.maxX - bounds.minX, 1);
-  const spanY = Math.max(bounds.maxY - bounds.minY, 1);
-  const nx = (x - bounds.minX) / spanX;
-  const ny = (y - bounds.minY) / spanY;
+  map = ASHENFALL_MAP,
+): { leftPct: number; topPct: number; onMap: boolean } {
+  const u = (x - map.ox) / map.size;
+  const v = (y - map.oy) / map.size;
+  const onMap = u >= 0 && u <= 1 && v >= 0 && v <= 1;
   return {
-    leftPct: (pad + Math.min(1, Math.max(0, nx)) * (1 - pad * 2)) * 100,
-    // Unreal Y increases "north" in our holdings view → flip for screen
-    topPct: (pad + (1 - Math.min(1, Math.max(0, ny))) * (1 - pad * 2)) * 100,
+    leftPct: Math.min(100, Math.max(0, u * 100)),
+    // Match in-game / community map: v increases toward the bottom of the image
+    topPct: Math.min(100, Math.max(0, v * 100)),
+    onMap,
   };
 }

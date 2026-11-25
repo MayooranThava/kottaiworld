@@ -83,8 +83,8 @@ export function Dashboard() {
         <div className="section-head">
           <h2>Holdings</h2>
           <p>
-            Ashenfall map with bases from {worldName}.sav — pin size scales with piece count.
-            Projection is approximate until Phase B calibration.
+            In-game Ashenfall map (<code>T_WorldMap_Landmass</code>) with bases from{" "}
+            {worldName}.sav — pins use the game&apos;s world-map calibration.
           </p>
         </div>
         <HoldingsMap bases={bases} />
