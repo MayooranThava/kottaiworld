@@ -69,6 +69,8 @@ https://kotta.mayotutors.com
 
 ## Publishing world data from your PC
 
+### Once (manual)
+
 ```powershell
 cd C:\dragonwilds\kottaiworld
 git checkout main
@@ -79,6 +81,25 @@ powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\publish-sanitized-
 ```
 
 That pushes a sanitized `apps/web/public/data/snapshot.json` → Actions redeploys Pages.
+
+### Every 4 hours (Windows Task Scheduler)
+
+PC must be on, Docker collector running (`docker compose up -d`), and Git able to push without a password prompt (sign in once with Git Credential Manager).
+
+```powershell
+cd C:\dragonwilds\kottaiworld
+git pull
+powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\register-snapshot-schedule.ps1
+```
+
+Then test once:
+
+```powershell
+powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\publish-sanitized-snapshot.ps1
+```
+
+Log file: `C:\dragonwilds\kottaiworld\logs\publish-snapshot.log`  
+Manage/disable: Windows **Task Scheduler** → task **KottaiWorld Publish Snapshot**
 
 ### What is stripped
 
@@ -100,8 +121,9 @@ Cloudflare serves `/data/snapshot.json` only.
 
 | Issue | Fix |
 |-------|-----|
-| Tutors site broke | You changed apex/`www` DNS — restore those; only the `kotta` subdomain should point at Pages |
-| `kotta.…` 404 | Pages deploy not done yet, or custom domain still provisioning (wait a few minutes) |
+| Tutors site broke | You changed apex/`www` DNS — restore those; only the `kottai` subdomain should point at Pages |
+| `kottai.…` 404 | Pages deploy not done yet, or custom domain still provisioning (wait a few minutes) |
+| Snapshot schedule fails | Check `logs\publish-snapshot.log`; ensure collector on :4100 and `git push` works without prompts |
 | Friends see login forever | Their email isn’t on the Access allow policy |
 | Open without login via `*.pages.dev` | Add Access on that hostname too |
 
