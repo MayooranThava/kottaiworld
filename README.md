@@ -14,6 +14,12 @@ Read-only observer:
 
 See [docs/PHASE_A.md](docs/PHASE_A.md) for Windows run steps.
 
+### Share with friends (Tailscale)
+
+For 4–5 players, share the local dashboard over **Tailscale Serve** (private network only — no public hosting):
+
+See [docs/TAILSCALE.md](docs/TAILSCALE.md).
+
 ## Quick start (Docker, next to your game host)
 
 ```powershell
@@ -42,4 +48,5 @@ COLLECTOR_URL=http://127.0.0.1:4100 pnpm --filter @kottaiworld/web dev
 ## Later
 
 - **Phase B** — RSDWServerAPI for live players / positions
-- Hosting — deferred; local-only for now
+- Weekly sanitized nickname pins / static export (optional)
+- Cloud hosting — not needed while Tailscale Serve is enough

@@ -40,6 +40,10 @@ Open:
 - Collector API: http://localhost:4100/api/snapshot
 - Health: http://localhost:4100/health
 
+### Share with your players
+
+Use **Tailscale Serve** so 4–5 friends can open the dashboard on your private network only (no public internet). See [TAILSCALE.md](./TAILSCALE.md).
+
 ## What you should see
 
 - **KottaiServer** hero branding
