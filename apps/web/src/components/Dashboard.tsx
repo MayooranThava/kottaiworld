@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { formatBytes, formatDuration, formatWhen } from "@/lib/format";
+import { fetchSnapshot } from "@/lib/loadSnapshot";
 import type { Snapshot } from "@/lib/types";
 import { HoldingsMap } from "./HoldingsMap";
 import { MaterialsShelf } from "./MaterialsShelf";
@@ -9,6 +10,7 @@ import { UptimeBars } from "./UptimeBars";
 
 const serverName = process.env.NEXT_PUBLIC_SERVER_NAME ?? "KottaiServer";
 const worldName = process.env.NEXT_PUBLIC_WORLD_NAME ?? "KottaiWorld";
+const isStatic = process.env.NEXT_PUBLIC_USE_STATIC_SNAPSHOT === "1";
 
 export function Dashboard() {
   const [snap, setSnap] = useState<Snapshot | null>(null);
@@ -18,8 +20,7 @@ export function Dashboard() {
     let cancelled = false;
     const load = async () => {
       try {
-        const res = await fetch("/api/snapshot", { cache: "no-store" });
-        const data = (await res.json()) as Snapshot;
+        const data = await fetchSnapshot();
         if (!cancelled) {
           setSnap(data);
           setLoadError(null);
@@ -31,7 +32,8 @@ export function Dashboard() {
       }
     };
     void load();
-    const id = setInterval(load, 30_000);
+    // Published copies change only when you push; poll less often
+    const id = setInterval(load, isStatic ? 120_000 : 30_000);
     return () => {
       cancelled = true;
       clearInterval(id);
@@ -42,8 +44,18 @@ export function Dashboard() {
   const bases = snap?.primary?.bases ?? [];
   const pieces = snap?.primary?.pieceCount ?? 0;
   const blueprints = snap?.primary?.blueprintCount ?? 0;
-  const statusLabel =
-    mode === "live" ? "Telemetry live" : mode === "error" ? "Degraded" : "Waiting";
+  const published = snap?.source === "published" || isStatic;
+  const statusLabel = published
+    ? mode === "live"
+      ? "Published copy"
+      : mode === "error"
+        ? "Degraded"
+        : "Waiting"
+    : mode === "live"
+      ? "Telemetry live"
+      : mode === "error"
+        ? "Degraded"
+        : "Waiting";
 
   return (
     <div className="page">
@@ -106,7 +118,7 @@ export function Dashboard() {
         </div>
       </section>
 
-      {(snap?.error || loadError) && (
+      {(snap?.error || loadError) && !published && (
         <section className="alert" role="alert">
           <h2>Collector issue</h2>
           <p>{snap?.error ?? loadError}</p>
@@ -120,6 +132,12 @@ export function Dashboard() {
           <p className="hint">
             Path expected: <code>{snap?.saveGamesPath || "/data/rsdw/.../SaveGames"}</code>
           </p>
+        </section>
+      )}
+      {published && loadError && (
+        <section className="alert" role="alert">
+          <h2>Snapshot unavailable</h2>
+          <p>{loadError}</p>
         </section>
       )}
 

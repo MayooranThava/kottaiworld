@@ -4,8 +4,14 @@ export type BaseCluster = {
   id: string;
   pieceCount: number;
   centroid: Vec3;
-  bbox: { min: Vec3; max: Vec3 };
-  cellKeys: string[];
+  bbox?: { min: Vec3; max: Vec3 };
+  cellKeys?: string[];
+};
+
+export type PublicPlayerPin = {
+  nickname: string;
+  x: number;
+  y: number;
 };
 
 export type BlueprintStat = {
@@ -24,7 +30,7 @@ export type WorldSaveSummary = {
   bases: BaseCluster[];
   blueprintCount?: number;
   blueprints?: BlueprintStat[];
-  parseWarnings: string[];
+  parseWarnings?: string[];
 };
 
 export type WorldListItem = {
@@ -52,13 +58,17 @@ export type Snapshot = {
   collectedAtIso: string;
   serverName: string;
   configuredWorld: string;
-  dataRootMounted: boolean;
-  saveGamesPath: string;
+  dataRootMounted?: boolean;
+  saveGamesPath?: string;
   worlds: WorldListItem[];
   primary: WorldSaveSummary | null;
-  error: string | null;
+  error?: string | null;
   mode: "live" | "empty" | "error";
   diagnostics?: string[];
   uptime?: UptimeHistory;
   upStreakSec?: number | null;
+  /** Present on Cloudflare-published copies */
+  source?: "published" | "live";
+  publishedAtIso?: string;
+  players?: PublicPlayerPin[];
 };

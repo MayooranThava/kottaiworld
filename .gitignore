@@ -1,6 +1,8 @@
 node_modules
 dist
 .next
+out
+apps/web/out
 .turbo
 coverage
 .env

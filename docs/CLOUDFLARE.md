@@ -1,150 +1,108 @@
-# Share the dashboard with friends (Cloudflare Access)
+# Deploy KottaiWorld (Cloudflare Pages + Access + GitHub Actions)
 
-Goal: friends open a normal link on phone or PC → **email login** → see the dashboard.  
-No Tailscale app. No public unauthenticated site.
+Friends open a normal link → **email login** → dashboard on phone or PC.  
+The site is a **sanitized copy** (not your Docker volume, not a tunnel into your PC).
 
 ```
-Friend phone/browser
-  → https://kottai.yourdomain.com
-  → Cloudflare Access (email allowlist / one-time PIN)
-  → Cloudflare Tunnel
-  → your PC localhost:3000  (live Docker dashboard)
+Your PC (for data updates)          GitHub Actions              Cloudflare
+──────────────────────────          ──────────────              ──────────
+collector → sanitize-snapshot
+  → public/data/snapshot.json
+  → git push  ─────────────────────►  build static Next.js
+                                      wrangler pages deploy  ──►  Pages
+                                                                Access allowlist
 ```
 
-Your game volume stays on the PC. Cloudflare only proxies the **already-safe** web UI.
+## One-time setup
 
-## What you need
+### 1. Cloudflare account + Pages project name
 
-1. Free [Cloudflare](https://dash.cloudflare.com) account  
-2. A domain on Cloudflare (cheap `.com`/`.xyz` is fine — Access needs a hostname)  
-3. Dashboard running locally: http://localhost:3000  
-4. [cloudflared](https://developers.cloudflare.com/cloudflare-one/connections/connect-apps/install-and-setup/installation/) on Windows  
+Use project name **`kottaiworld`** (matches the GitHub Action).  
+First successful Action deploy can create it; or create an empty Pages project with that name.
 
-Free Zero Trust / Access is enough for ~4–5 friends.
+### 2. GitHub Actions secrets
 
-## 1. Start the local dashboard
+Create an API token: [Cloudflare API Tokens](https://dash.cloudflare.com/profile/api-tokens)  
+(Use a token that can edit Cloudflare Workers / Pages.)
+
+GitHub repo → **Settings** → **Secrets and variables** → **Actions**:
+
+| Secret | Value |
+|--------|--------|
+| `CLOUDFLARE_API_TOKEN` | API token |
+| `CLOUDFLARE_ACCOUNT_ID` | Account ID (Cloudflare dashboard sidebar) |
+
+Yes — **GitHub Actions deploys the app** on every push to `main` (and via **Run workflow**).
+
+### 3. Access allowlist (email login)
+
+Zero Trust → **Access** → **Applications** → **Self-hosted**:
+
+- Domain: `kottaiworld.pages.dev` (or your custom domain)
+- Policy **Allow** → **Emails** → add your 4–5 friends (+ you)
+
+Do this before sharing the link.
+
+### 4. Ship the code
+
+Merge this branch to **`main`**, or run **Actions → Deploy Cloudflare Pages → Run workflow** after secrets are set.
+
+Workflow: [`.github/workflows/deploy-cloudflare-pages.yml`](../.github/workflows/deploy-cloudflare-pages.yml)
+
+## Publishing world data from your PC
 
 ```powershell
 cd C:\dragonwilds\kottaiworld
+git checkout main
 git pull
 docker compose up -d
+
+powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\publish-sanitized-snapshot.ps1
 ```
 
-Confirm: http://localhost:3000
+That:
 
-## 2. Create a Cloudflare Tunnel
+1. Reads live collector `http://127.0.0.1:4100/api/snapshot`  
+2. Strips paths / diagnostics / internal keys  
+3. Writes `apps/web/public/data/snapshot.json`  
+4. Commits + pushes → Actions redeploys Pages  
 
-In [Zero Trust](https://one.dash.cloudflare.com/) → **Networks** → **Tunnels** → **Create a tunnel**:
+Schedule it weekly (Task Scheduler) if you want hands-off updates.
 
-1. Name it `kottai-dashboard`
-2. Choose **Cloudflared** → Windows  
-3. Copy the install/token command Cloudflare shows (includes a long token)  
-4. Run that command on your PC (installs the tunnel as a Windows service — survives reboot)
+### What is stripped
 
-Or manually:
+- Filesystem paths, mount diagnostics, raw collector errors  
+- Cluster internals (`cellKeys`, full bbox)  
+- Full blueprint GUIDs (shortened)  
+- Never `.sav`, never `.env` / join code / admin password  
+
+Kept: pieces, bases + map positions, uptime ticks, save file names/sizes, future nickname pins.
+
+## Local Docker (unchanged)
 
 ```powershell
-winget install --id Cloudflare.cloudflared -e
-cloudflared tunnel login
-cloudflared tunnel create kottai-dashboard
+docker compose up --build -d
 ```
 
-Point the tunnel at the dashboard:
+→ http://localhost:3000 with live `/api/snapshot`.  
+Cloudflare build uses static `/data/snapshot.json` only.
 
-```powershell
-cloudflared tunnel route dns kottai-dashboard kottai.YOURDOMAIN.com
-```
+## Cost
 
-Create config `%USERPROFILE%\.cloudflared\config.yml`:
+- Pages + Access free tier: fine for 4–5 friends  
+- Optional custom domain ~$10/year  
+- No VPS, no always-on tunnel into your LAN  
 
-```yaml
-tunnel: kottai-dashboard
-credentials-file: C:\Users\YOU\.cloudflared\TUNNEL_ID.json
+## Troubleshooting
 
-ingress:
-  - hostname: kottai.YOURDOMAIN.com
-    service: http://127.0.0.1:3000
-  - service: http_status:404
-```
+| Issue | Fix |
+|-------|-----|
+| Action auth error | Check `CLOUDFLARE_API_TOKEN` + `CLOUDFLARE_ACCOUNT_ID` |
+| Old / empty data | Run `publish-sanitized-snapshot.ps1` on `main` |
+| Friends blocked | Add email to Access allow policy |
+| `pages.dev` works, custom domain doesn’t | Attach domain in Pages → Custom domains + Access app domain |
 
-Run / install service:
+## Other options
 
-```powershell
-cloudflared tunnel run kottai-dashboard
-# or install as service (recommended):
-cloudflared service install
-```
-
-Helper (after config exists):
-
-```powershell
-powershell -NoProfile -ExecutionPolicy Bypass -File C:\dragonwilds\kottaiworld\scripts\cloudflare-tunnel-dashboard.ps1
-```
-
-## 3. Lock it with Access (the email login)
-
-Zero Trust → **Access** → **Applications** → **Add an application** → **Self-hosted**:
-
-| Field | Value |
-|-------|--------|
-| Application name | KottaiWorld Dashboard |
-| Session duration | 24 hours (or whatever you like) |
-| Application domain | `kottai.YOURDOMAIN.com` |
-
-**Policy** (Allow):
-
-- Include → **Emails** → add your 4–5 friends’ emails (and yours)  
-  **or** Include → **Email domain** if you all share one (usually don’t)
-
-Save.  
-
-Now anyone hitting the URL gets Cloudflare’s login page (one-time PIN to email, or IdP if you configure one). Only allowlisted emails get through.
-
-## 4. What to send friends
-
-```
-https://kottai.YOURDOMAIN.com
-```
-
-They:
-1. Open the link (phone or PC)  
-2. Enter email → get a PIN  
-3. Done — dashboard loads  
-
-No VPN app.
-
-## 5. Security checklist
-
-| Do | Don't |
-|----|--------|
-| Access allowlist of known emails only | Leave the tunnel hostname without Access |
-| Tunnel to `127.0.0.1:3000` only | Port-forward 3000/4100 on your router |
-| Keep game `.env` / join code off the dashboard | Put admin password in the web UI |
-| Prefer Serve/Tunnel over Funnel-style public | Use a temporary `trycloudflare.com` URL for friends long-term |
-
-Optional: do **not** expose collector `:4100` through the tunnel — only the web UI on `:3000`.
-
-## 6. Cost / uptime reality
-
-- Cloudflare Tunnel + Access free tier: fine for this  
-- Domain: ~$10/year if you don’t already have one  
-- If your **PC or Docker is off**, the site won’t load (same as Tailscale)  
-
-## 7. Troubleshooting
-
-| Symptom | Fix |
-|---------|-----|
-| 502 / bad gateway | Dashboard not on localhost:3000 — `docker compose up -d` |
-| Endless Access login | Email not on the allow policy |
-| Works for you, not friends | They must use an allowlisted email; check spam for PIN |
-| Tunnel offline after reboot | Install cloudflared as a Windows service |
-
-## Tailscale vs Cloudflare (why this choice)
-
-| | Tailscale | Cloudflare Access + Tunnel |
-|--|-----------|----------------------------|
-| Phone | Needs Tailscale app | Normal browser link |
-| Login | VPN join | Email PIN |
-| Cost | Free | Free + domain |
-
-You asked for “hit a link → login → done,” so Cloudflare is the better fit.
+- [Tailscale Serve](./TAILSCALE.md) — private VPN app on phones  
+- Live Docker tunnel — more exposure; PC must stay on (not recommended now that Pages is set up)

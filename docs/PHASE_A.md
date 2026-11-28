@@ -42,9 +42,9 @@ Open:
 
 ### Share with your players
 
-**Recommended:** [Cloudflare Access + Tunnel](./CLOUDFLARE.md) — friends open a link, email PIN login, works on phones (no VPN app).
+**Recommended:** [Cloudflare Pages + Access + GitHub Actions](./CLOUDFLARE.md) — deployed sanitized copy, email login on phones.
 
-Alternative: [Tailscale Serve](./TAILSCALE.md) if your group already uses Tailscale.
+Local Docker remains for live observing and for generating the published snapshot.
 
 ## What you should see
 

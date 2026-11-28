@@ -14,15 +14,13 @@ Read-only observer:
 
 See [docs/PHASE_A.md](docs/PHASE_A.md) for Windows run steps.
 
-### Share with friends (Cloudflare Access)
+### Share with friends (Cloudflare Pages + Access)
 
-Easiest for phones: friends open a link → **email login** → dashboard.
-
-Uses **Cloudflare Tunnel** to your PC’s `localhost:3000` + **Access** allowlist (no public unauthenticated site).
+Deployed static build via **GitHub Actions** → Cloudflare Pages.  
+Friends open a link → **email login** → dashboard (works on phones).  
+Your PC only pushes a **sanitized** `snapshot.json` when you want updates.
 
 See [docs/CLOUDFLARE.md](docs/CLOUDFLARE.md).
-
-(Alternative: [Tailscale Serve](docs/TAILSCALE.md) if everyone already uses Tailscale.)
 
 ## Quick start (Docker, next to your game host)
 
@@ -52,5 +50,4 @@ COLLECTOR_URL=http://127.0.0.1:4100 pnpm --filter @kottaiworld/web dev
 ## Later
 
 - **Phase B** — RSDWServerAPI for live players / positions
-- Weekly sanitized nickname pins / static export (optional)
-- Cloud hosting — not needed while Tailscale Serve is enough
+- Nickname pins on the published map (`players` in sanitized snapshot)
