@@ -1,0 +1,89 @@
+:root {
+  --ink: #14110e;
+  --ash: #221e19;
+  --ember: #c45c2a;
+  --ember-soft: #e08a4f;
+  --moss: #3d5a45;
+  --moss-deep: #24352b;
+  --fog: #b9b0a2;
+  --parchment: #ebe4d7;
+  --glow: rgba(196, 92, 42, 0.28);
+  --signal-up: #6faf63;
+  --line: rgba(232, 224, 210, 0.12);
+  --panel: rgba(10, 12, 14, 0.42);
+  --font-display: "Literata", Georgia, serif;
+  --font-body: "IBM Plex Sans", "Segoe UI", sans-serif;
+  --page-max: 1120px;
+  --section-gap: 2.75rem;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  min-height: 100%;
+  background: var(--ink);
+  color: var(--parchment);
+  font-family: var(--font-body);
+  font-size: 15.5px;
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+body {
+  background:
+    radial-gradient(1100px 640px at 78% -8%, rgba(196, 92, 42, 0.16), transparent 55%),
+    radial-gradient(860px 560px at 8% 18%, rgba(61, 90, 69, 0.28), transparent 52%),
+    linear-gradient(168deg, #12100d 0%, #1a1f18 46%, #101318 100%);
+  background-attachment: fixed;
+}
+
+a {
+  color: var(--ember-soft);
+}
+
+::selection {
+  background: rgba(196, 92, 42, 0.45);
+}
+
+code {
+  font-family: "IBM Plex Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
+}
+
+@keyframes breath {
+  0%,
+  100% {
+    opacity: 0.55;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1.08);
+  }
+}
+
+@keyframes rise {
+  from {
+    opacity: 0;
+    transform: translateY(14px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.vital-label {
+  display: block;
+  font-size: 0.75rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: rgba(232, 224, 210, 0.78);
+  margin-bottom: 0.4rem;
+  font-weight: 500;
+  line-height: 1.3;
+}

@@ -1,0 +1,15 @@
+node_modules
+dist
+.next
+out
+apps/web/out
+.turbo
+coverage
+.env
+.env.local
+*.log
+.DS_Store
+*.tsbuildinfo
+apps/collector/data/
+apps/collector/work/
+.pnpm-store

@@ -1,0 +1,46 @@
+{
+  "source": "published",
+  "publishedAtIso": "2026-11-28T00:00:00.000Z",
+  "collectedAtIso": "2026-11-28T00:00:00.000Z",
+  "serverName": "KottaiServer",
+  "configuredWorld": "KottaiWorld",
+  "mode": "live",
+  "worlds": [
+    {
+      "fileName": "KottaiWorld.sav",
+      "sizeBytes": 1990000,
+      "mtimeIso": "2026-11-25T06:21:00.000Z"
+    }
+  ],
+  "primary": {
+    "fileName": "KottaiWorld.sav",
+    "worldName": "KottaiWorld",
+    "worldMapName": "L_World",
+    "savedAtIso": "2026-11-25T06:21:00.000Z",
+    "fileSizeBytes": 1990000,
+    "pieceCount": 615,
+    "blueprintCount": 42,
+    "blueprints": [],
+    "bases": [
+      {
+        "id": "base-1",
+        "pieceCount": 412,
+        "centroid": { "x": 47172, "y": 175821, "z": 120 }
+      },
+      {
+        "id": "base-2",
+        "pieceCount": 203,
+        "centroid": { "x": 70678, "y": 115122, "z": 90 }
+      }
+    ]
+  },
+  "uptime": {
+    "processStartedAtIso": "2026-11-27T18:00:00.000Z",
+    "firstLiveAtIso": "2026-11-27T18:00:00.000Z",
+    "ticks": [],
+    "windowHours": 6,
+    "intervalSec": 120
+  },
+  "upStreakSec": null,
+  "players": []
+}

@@ -1,0 +1,16 @@
+{
+  "name": "kottaiworld",
+  "private": true,
+  "packageManager": "pnpm@9.15.0",
+  "scripts": {
+    "dev": "pnpm -r --parallel --filter @kottaiworld/web --filter @kottaiworld/collector dev",
+    "build": "pnpm -r build",
+    "test": "pnpm -r test",
+    "typecheck": "pnpm -r typecheck",
+    "collector": "pnpm --filter @kottaiworld/collector start",
+    "web": "pnpm --filter @kottaiworld/web start"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}
