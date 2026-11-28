@@ -53,30 +53,42 @@ export function MaterialsShelf({ snap }: Props) {
         <p className="kicker">Construction ledger</p>
         <h2>Materials & blueprints</h2>
         <p>
-          In-game resource icons from Dragonwilds. Piece and blueprint totals are
-          read from <code>Pces</code> — inventory stock is not in the world save
+          Named Ashenfall resources from Dragonwilds. Totals come from{" "}
+          <code>Pces</code> in the world save — inventory stock is not available
           yet.
         </p>
       </div>
 
       <div className="ledger">
-        {ledger.map((row) => (
-          <article key={row.key} className="stat">
-            <img
-              src={row.emblem.src}
-              alt=""
-              width={56}
-              height={56}
-              loading="lazy"
-              decoding="async"
-            />
-            <div>
+        {ledger.map((row, i) => (
+          <article
+            key={row.key}
+            className="stat"
+            style={{ animationDelay: `${i * 50}ms` }}
+          >
+            <div className="emblem">
+              <img
+                src={row.emblem.src}
+                alt={row.emblem.name}
+                width={56}
+                height={56}
+                loading="lazy"
+                decoding="async"
+              />
+              <span className="material-name">{row.emblem.name}</span>
+            </div>
+            <div className="body">
               <span className="label">{row.label}</span>
               <strong>{row.value}</strong>
               <span className="note">{row.note}</span>
             </div>
           </article>
         ))}
+      </div>
+
+      <div className="resources-head">
+        <h3>Core resources</h3>
+        <p>Each material, named — open Dragonwilds DB for details.</p>
       </div>
 
       <div className="icons">
@@ -88,10 +100,17 @@ export function MaterialsShelf({ snap }: Props) {
             target="_blank"
             rel="noreferrer"
             title={m.blurb}
-            style={{ animationDelay: `${i * 40}ms` }}
+            style={{ animationDelay: `${80 + i * 40}ms` }}
           >
-            <img src={m.src} alt="" width={48} height={48} loading="lazy" />
-            <span>{m.name}</span>
+            <img
+              src={m.src}
+              alt={m.name}
+              width={52}
+              height={52}
+              loading="lazy"
+            />
+            <span className="res-name">{m.name}</span>
+            <span className="res-blurb">{m.blurb}</span>
           </a>
         ))}
       </div>
@@ -150,7 +169,7 @@ export function MaterialsShelf({ snap }: Props) {
         .section-head p {
           margin: 0;
           color: var(--fog);
-          max-width: 40rem;
+          max-width: 42rem;
           line-height: 1.5;
         }
         .section-head code {
@@ -160,23 +179,41 @@ export function MaterialsShelf({ snap }: Props) {
         .ledger {
           display: grid;
           grid-template-columns: repeat(4, minmax(0, 1fr));
-          gap: 0.85rem;
+          gap: 0.75rem;
         }
         .stat {
           display: grid;
-          grid-template-columns: 56px 1fr;
-          gap: 0.75rem;
+          grid-template-columns: 72px 1fr;
+          gap: 0.85rem;
           align-items: center;
-          padding: 0.85rem 0.9rem;
-          background: rgba(8, 10, 12, 0.35);
-          border: 1px solid rgba(232, 224, 210, 0.1);
+          padding: 0.95rem 0.95rem;
+          background: linear-gradient(
+            165deg,
+            rgba(18, 22, 20, 0.72),
+            rgba(8, 10, 12, 0.5)
+          );
+          border: 1px solid rgba(232, 224, 210, 0.12);
+          border-top: 1px solid rgba(224, 138, 79, 0.22);
           animation: rise 0.6s ease both;
         }
-        .stat img {
+        .emblem {
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          gap: 0.35rem;
+        }
+        .emblem img {
           width: 56px;
           height: 56px;
           object-fit: contain;
-          image-rendering: auto;
+        }
+        .material-name {
+          font-size: 0.68rem;
+          font-weight: 600;
+          letter-spacing: 0.04em;
+          text-align: center;
+          color: var(--parchment);
+          line-height: 1.2;
         }
         .label {
           display: block;
@@ -187,12 +224,12 @@ export function MaterialsShelf({ snap }: Props) {
         }
         .stat strong {
           display: block;
-          font-size: 1.45rem;
+          font-size: 1.5rem;
           font-weight: 650;
           font-variant-numeric: tabular-nums;
           letter-spacing: -0.02em;
           line-height: 1.15;
-          margin: 0.1rem 0;
+          margin: 0.15rem 0;
         }
         .note {
           display: block;
@@ -200,39 +237,65 @@ export function MaterialsShelf({ snap }: Props) {
           color: var(--fog);
           line-height: 1.35;
         }
+        .resources-head {
+          display: flex;
+          flex-wrap: wrap;
+          align-items: baseline;
+          gap: 0.65rem 1rem;
+          margin-top: 0.25rem;
+        }
+        .resources-head h3 {
+          margin: 0;
+          font-family: var(--font-display);
+          font-size: 1.05rem;
+          font-weight: 600;
+        }
+        .resources-head p {
+          margin: 0;
+          color: var(--fog);
+          font-size: 0.85rem;
+        }
         .icons {
           display: grid;
-          grid-template-columns: repeat(8, minmax(0, 1fr));
-          gap: 0.55rem;
+          grid-template-columns: repeat(4, minmax(0, 1fr));
+          gap: 0.65rem;
         }
         .chip {
           display: flex;
           flex-direction: column;
-          align-items: center;
-          gap: 0.4rem;
-          padding: 0.7rem 0.35rem 0.65rem;
+          align-items: flex-start;
+          gap: 0.35rem;
+          padding: 0.9rem 0.85rem 0.95rem;
           text-decoration: none;
           color: var(--parchment);
-          background: rgba(8, 10, 12, 0.28);
-          border: 1px solid rgba(232, 224, 210, 0.08);
-          transition: border-color 0.15s ease, transform 0.15s ease;
+          background: rgba(8, 10, 12, 0.38);
+          border: 1px solid rgba(232, 224, 210, 0.1);
+          transition: border-color 0.15s ease, transform 0.15s ease,
+            background 0.15s ease;
           animation: rise 0.55s ease both;
         }
         .chip:hover {
-          border-color: rgba(224, 138, 79, 0.45);
+          border-color: rgba(224, 138, 79, 0.5);
+          background: rgba(196, 92, 42, 0.08);
           transform: translateY(-2px);
         }
         .chip img {
-          width: 48px;
-          height: 48px;
+          width: 52px;
+          height: 52px;
           object-fit: contain;
+          margin-bottom: 0.15rem;
         }
-        .chip span {
-          font-size: 0.68rem;
-          text-align: center;
-          letter-spacing: 0.02em;
-          line-height: 1.25;
+        .res-name {
+          font-size: 0.92rem;
+          font-weight: 650;
+          letter-spacing: 0.01em;
+          color: var(--parchment);
+          line-height: 1.2;
+        }
+        .res-blurb {
+          font-size: 0.72rem;
           color: var(--fog);
+          line-height: 1.35;
         }
         .top h3 {
           margin: 0 0 0.65rem;
@@ -291,15 +354,13 @@ export function MaterialsShelf({ snap }: Props) {
             grid-template-columns: 1fr 1fr;
           }
           .icons {
-            grid-template-columns: repeat(4, minmax(0, 1fr));
+            grid-template-columns: 1fr 1fr;
           }
         }
         @media (max-width: 560px) {
-          .ledger {
-            grid-template-columns: 1fr;
-          }
+          .ledger,
           .icons {
-            grid-template-columns: repeat(2, minmax(0, 1fr));
+            grid-template-columns: 1fr;
           }
           .top li {
             grid-template-columns: 1fr auto;
