@@ -17,7 +17,7 @@ See [docs/PHASE_A.md](docs/PHASE_A.md) for Windows run steps.
 ### Share with friends (Cloudflare Pages + Access)
 
 Deployed static build via **GitHub Actions** → Cloudflare Pages.  
-Friends open **https://kotta.mayotutors.com** → **email login** → dashboard.  
+Friends open **https://kottai.mayotutors.com** → **email login** → dashboard.  
 (`www.mayotutors.com` tutors site stays separate.)  
 Your PC only pushes a **sanitized** `snapshot.json` when you want updates.
 

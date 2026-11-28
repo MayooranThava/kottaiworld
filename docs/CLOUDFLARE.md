@@ -1,6 +1,6 @@
 # Deploy KottaiWorld (Cloudflare Pages + Access + GitHub Actions)
 
-Friends open **https://kotta.mayotutors.com** → email login → dashboard.  
+Friends open **https://kottai.mayotutors.com** → email login → dashboard.  
 **https://www.mayotutors.com/** (tutors site) stays unchanged. This is only a **subdomain**.
 
 The site is a **sanitized copy** (not your Docker volume, not a tunnel into your PC).
@@ -13,7 +13,7 @@ collector → sanitize-snapshot
   → git push  ─────────────────────►  build static Next.js
                                       wrangler pages deploy  ──►  Pages project kottaiworld
                                                                 custom domain
-                                                                kotta.mayotutors.com
+                                                                kottai.mayotutors.com
                                                                 Access email allowlist
 ```
 
@@ -31,12 +31,12 @@ collector → sanitize-snapshot
 
 Merge to `main` (or **Actions → Deploy Cloudflare Pages → Run workflow**) so the first deploy exists.
 
-### 2. Attach `kotta.mayotutors.com`
+### 2. Attach `kottai.mayotutors.com`
 
 In Cloudflare (same account / zone as **mayotutors.com**):
 
 1. **Workers & Pages** → project **`kottaiworld`** → **Custom domains**  
-2. Add **`kotta.mayotutors.com`**  
+2. Add **`kottai.mayotutors.com`**  
 3. Cloudflare will create the DNS `CNAME` on the `mayotutors.com` zone automatically  
 
 Do **not** change `www` / apex records that point at the tutors site.
@@ -48,7 +48,7 @@ Zero Trust → **Access** → **Applications** → **Add** → **Self-hosted**:
 | Field | Value |
 |-------|--------|
 | Application name | KottaiWorld |
-| Application domain | `kotta.mayotutors.com` |
+| Application domain | `kottai.mayotutors.com` |
 | Policy | **Allow** → **Emails** → you + 4–5 friends |
 
 Optional but recommended: also protect `kottaiworld.pages.dev` the same way (or leave that URL unused) so the raw Pages hostname isn’t an open backdoor.
@@ -60,7 +60,7 @@ Until Access is on, treat the URL as not ready for friends.
 Share only:
 
 ```text
-https://kotta.mayotutors.com
+https://kottai.mayotutors.com
 ```
 
 - Random people hitting the link see Cloudflare’s **login**, not the map  
@@ -100,7 +100,7 @@ Cloudflare serves `/data/snapshot.json` only.
 
 | Issue | Fix |
 |-------|-----|
-| Tutors site broke | You changed apex/`www` DNS — restore those; only the `kotta` subdomain should point at Pages |
+| Tutors site broke | You changed apex/`www` DNS — restore those; only the `kottai` subdomain should point at Pages |
 | `kotta.…` 404 | Pages deploy not done yet, or custom domain still provisioning (wait a few minutes) |
 | Friends see login forever | Their email isn’t on the Access allow policy |
 | Open without login via `*.pages.dev` | Add Access on that hostname too |
