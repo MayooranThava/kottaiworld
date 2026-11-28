@@ -22,15 +22,31 @@ function Write-Log([string]$Message) {
   Write-Host $line
 }
 
+# git writes progress to stderr; with $ErrorActionPreference=Stop that becomes a terminating error
+function Invoke-Git {
+  param([Parameter(ValueFromRemainingArguments = $true)][string[]]$GitArgs)
+  $prev = $ErrorActionPreference
+  $ErrorActionPreference = "Continue"
+  $output = & git @GitArgs 2>&1
+  $code = $LASTEXITCODE
+  $ErrorActionPreference = $prev
+  foreach ($line in $output) {
+    Write-Log ("{0}" -f $line)
+  }
+  if ($code -ne 0) {
+    throw "git $($GitArgs -join ' ') failed with exit code $code"
+  }
+}
+
 Set-Location $RepoRoot
 $Out = Join-Path $RepoRoot "apps\web\public\data\snapshot.json"
 $Tmp = Join-Path $env:TEMP "kottai-raw-snapshot.json"
 
 Write-Log "Starting publish from $RepoRoot"
 
-git fetch origin main 2>&1 | ForEach-Object { Write-Log $_ }
-git checkout main 2>&1 | ForEach-Object { Write-Log $_ }
-git pull --ff-only origin main 2>&1 | ForEach-Object { Write-Log $_ }
+Invoke-Git fetch origin main
+Invoke-Git checkout main
+Invoke-Git pull --ff-only origin main
 
 Write-Log "Fetching collector snapshot ..."
 try {
@@ -43,13 +59,16 @@ try {
 Write-Log "Sanitizing ..."
 node (Join-Path $RepoRoot "scripts\sanitize-snapshot.mjs") $Tmp $Out
 
-git add -- "apps/web/public/data/snapshot.json"
-$status = git status --porcelain -- "apps/web/public/data/snapshot.json"
+Invoke-Git add -- "apps/web/public/data/snapshot.json"
+$prev = $ErrorActionPreference
+$ErrorActionPreference = "Continue"
+$status = & git status --porcelain -- "apps/web/public/data/snapshot.json" 2>&1
+$ErrorActionPreference = $prev
 if (-not $status) {
   Write-Log "No snapshot changes to publish."
   exit 0
 }
 
-git commit -m "Publish sanitized KottaiWorld snapshot" 2>&1 | ForEach-Object { Write-Log $_ }
-git push origin main 2>&1 | ForEach-Object { Write-Log $_ }
+Invoke-Git commit -m "Publish sanitized KottaiWorld snapshot"
+Invoke-Git push origin main
 Write-Log "Pushed. GitHub Actions will deploy Cloudflare Pages."
