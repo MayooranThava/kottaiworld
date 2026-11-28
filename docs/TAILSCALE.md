@@ -1,6 +1,8 @@
 # Share the dashboard with friends (Tailscale)
 
-For 4–5 players, **Tailscale** is the best low-cost option: the site stays on your PC, never on the public internet, and only people on your private Tailscale network can open it.
+> Prefer **phone-friendly email login**? Use [CLOUDFLARE.md](./CLOUDFLARE.md) instead (Cloudflare Access + Tunnel).
+
+Tailscale keeps the site on your PC and only on your private network. Friends need the Tailscale app.
 
 ```
 Your Windows PC (Docker Desktop)

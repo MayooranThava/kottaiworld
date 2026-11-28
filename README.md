@@ -14,11 +14,15 @@ Read-only observer:
 
 See [docs/PHASE_A.md](docs/PHASE_A.md) for Windows run steps.
 
-### Share with friends (Tailscale)
+### Share with friends (Cloudflare Access)
 
-For 4–5 players, share the local dashboard over **Tailscale Serve** (private network only — no public hosting):
+Easiest for phones: friends open a link → **email login** → dashboard.
 
-See [docs/TAILSCALE.md](docs/TAILSCALE.md).
+Uses **Cloudflare Tunnel** to your PC’s `localhost:3000` + **Access** allowlist (no public unauthenticated site).
+
+See [docs/CLOUDFLARE.md](docs/CLOUDFLARE.md).
+
+(Alternative: [Tailscale Serve](docs/TAILSCALE.md) if everyone already uses Tailscale.)
 
 ## Quick start (Docker, next to your game host)
 

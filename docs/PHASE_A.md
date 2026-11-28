@@ -42,7 +42,9 @@ Open:
 
 ### Share with your players
 
-Use **Tailscale Serve** so 4–5 friends can open the dashboard on your private network only (no public internet). See [TAILSCALE.md](./TAILSCALE.md).
+**Recommended:** [Cloudflare Access + Tunnel](./CLOUDFLARE.md) — friends open a link, email PIN login, works on phones (no VPN app).
+
+Alternative: [Tailscale Serve](./TAILSCALE.md) if your group already uses Tailscale.
 
 ## What you should see
 
