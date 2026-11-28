@@ -1,7 +1,7 @@
 {
   "source": "published",
-  "publishedAtIso": "2026-11-28T19:21:05.758Z",
-  "collectedAtIso": "2026-11-28T19:20:50.448Z",
+  "publishedAtIso": "2026-11-28T20:00:03.879Z",
+  "collectedAtIso": "2026-11-28T19:58:50.459Z",
   "serverName": "KottaiServer",
   "configuredWorld": "KottaiWorld",
   "mode": "live",
@@ -13,16 +13,16 @@
     },
     {
       "fileName": "KottaiWorld.sav",
-      "sizeBytes": 4397019,
-      "mtimeIso": "2026-11-28T19:18:08.603Z"
+      "sizeBytes": 4396878,
+      "mtimeIso": "2026-11-28T19:58:09.339Z"
     }
   ],
   "primary": {
     "fileName": "KottaiWorld.sav",
     "worldName": "KottaiWorld",
     "worldMapName": "L_World",
-    "savedAtIso": "2026-11-28T19:18:08.571Z",
-    "fileSizeBytes": 4397019,
+    "savedAtIso": "2026-11-28T19:58:09.303Z",
+    "fileSizeBytes": 4396878,
     "pieceCount": 1096,
     "blueprintCount": 60,
     "blueprints": [
@@ -119,82 +119,6 @@
     "processStartedAtIso": "2026-11-25T07:12:32.448Z",
     "firstLiveAtIso": "2026-11-25T07:12:32.477Z",
     "ticks": [
-      {
-        "atIso": "2026-11-28T13:22:50.345Z",
-        "status": "up"
-      },
-      {
-        "atIso": "2026-11-28T13:24:50.345Z",
-        "status": "up"
-      },
-      {
-        "atIso": "2026-11-28T13:26:50.351Z",
-        "status": "up"
-      },
-      {
-        "atIso": "2026-11-28T13:28:50.345Z",
-        "status": "up"
-      },
-      {
-        "atIso": "2026-11-28T13:30:50.353Z",
-        "status": "up"
-      },
-      {
-        "atIso": "2026-11-28T13:32:50.345Z",
-        "status": "up"
-      },
-      {
-        "atIso": "2026-11-28T13:34:50.345Z",
-        "status": "up"
-      },
-      {
-        "atIso": "2026-11-28T13:36:50.353Z",
-        "status": "up"
-      },
-      {
-        "atIso": "2026-11-28T13:38:50.348Z",
-        "status": "up"
-      },
-      {
-        "atIso": "2026-11-28T13:40:50.355Z",
-        "status": "up"
-      },
-      {
-        "atIso": "2026-11-28T13:42:50.349Z",
-        "status": "up"
-      },
-      {
-        "atIso": "2026-11-28T13:44:50.348Z",
-        "status": "up"
-      },
-      {
-        "atIso": "2026-11-28T13:46:50.361Z",
-        "status": "up"
-      },
-      {
-        "atIso": "2026-11-28T13:48:50.349Z",
-        "status": "up"
-      },
-      {
-        "atIso": "2026-11-28T13:50:50.357Z",
-        "status": "up"
-      },
-      {
-        "atIso": "2026-11-28T13:52:50.350Z",
-        "status": "up"
-      },
-      {
-        "atIso": "2026-11-28T13:54:50.351Z",
-        "status": "up"
-      },
-      {
-        "atIso": "2026-11-28T13:56:50.360Z",
-        "status": "up"
-      },
-      {
-        "atIso": "2026-11-28T13:58:50.351Z",
-        "status": "up"
-      },
       {
         "atIso": "2026-11-28T14:00:50.360Z",
         "status": "up"
@@ -837,6 +761,82 @@
       },
       {
         "atIso": "2026-11-28T19:20:50.449Z",
+        "status": "up"
+      },
+      {
+        "atIso": "2026-11-28T19:22:50.450Z",
+        "status": "up"
+      },
+      {
+        "atIso": "2026-11-28T19:24:50.458Z",
+        "status": "up"
+      },
+      {
+        "atIso": "2026-11-28T19:26:50.451Z",
+        "status": "up"
+      },
+      {
+        "atIso": "2026-11-28T19:28:50.462Z",
+        "status": "up"
+      },
+      {
+        "atIso": "2026-11-28T19:30:50.453Z",
+        "status": "up"
+      },
+      {
+        "atIso": "2026-11-28T19:32:50.455Z",
+        "status": "up"
+      },
+      {
+        "atIso": "2026-11-28T19:34:50.463Z",
+        "status": "up"
+      },
+      {
+        "atIso": "2026-11-28T19:36:50.454Z",
+        "status": "up"
+      },
+      {
+        "atIso": "2026-11-28T19:38:50.461Z",
+        "status": "up"
+      },
+      {
+        "atIso": "2026-11-28T19:40:50.456Z",
+        "status": "up"
+      },
+      {
+        "atIso": "2026-11-28T19:42:50.456Z",
+        "status": "up"
+      },
+      {
+        "atIso": "2026-11-28T19:44:50.493Z",
+        "status": "up"
+      },
+      {
+        "atIso": "2026-11-28T19:46:50.457Z",
+        "status": "up"
+      },
+      {
+        "atIso": "2026-11-28T19:48:50.465Z",
+        "status": "up"
+      },
+      {
+        "atIso": "2026-11-28T19:50:50.459Z",
+        "status": "up"
+      },
+      {
+        "atIso": "2026-11-28T19:52:50.459Z",
+        "status": "up"
+      },
+      {
+        "atIso": "2026-11-28T19:54:50.467Z",
+        "status": "up"
+      },
+      {
+        "atIso": "2026-11-28T19:56:50.460Z",
+        "status": "up"
+      },
+      {
+        "atIso": "2026-11-28T19:58:50.522Z",
         "status": "up"
       }
     ],
